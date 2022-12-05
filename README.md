@@ -1,16 +1,17 @@
-# teragate_ble_repo
+# teragate_v3
 
 A new Flutter project.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### defulat sdk version change
+1. flutter sdk 에서 수정
+- full name of file
+  * C:\flutter\packages\flutter_tools\gradle\flutter.gradle 
+- What needs to be changed
+  * compileSdkVersion : 33
+  * minSdkVersion : 21
+  * targetSdkVersion : 33  
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Beacons_plugin 2.0.8 
+- https://pub.dev/packages/beacons_plugin
