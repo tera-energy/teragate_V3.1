@@ -234,7 +234,6 @@ class BLEInfo {
     Env.UUIDS.clear();
 
     for (var element in ble) {
-      Log.debug("&&&&&&&&&&&&element : ${element.runtimeType.toString()}");
       // Env.UUIDS["${element["uuid"]}"] = element["place"];
       Env.UUIDS["${element.uuid}"] = element.place;
       bleInfoDataList.add(BLEInfoData.fromJson(element));
@@ -257,10 +256,12 @@ class BLEInfoData {
 
   BLEInfoData({required this.uuid, required this.place});
 
-  static BLEInfoData fromJson(Map<String, dynamic> json) {
-    Log.debug("place ${json['place']}");
-    Log.debug("uuid ${json['uuid']}");
-    return BLEInfoData(place: json["place"], uuid: json["uuid"]);
+  // static BLEInfoData fromJson(Map<String, dynamic> json) {
+  //   return BLEInfoData(place: json["place"], uuid: json["uuid"]);
+  // }
+
+  static BLEInfoData fromJson(dynamic object) {
+    return BLEInfoData(place: object.place, uuid: object.uuid);
   }
 
   static List<BLEInfoData> fromJsons(List<dynamic> jsons) {

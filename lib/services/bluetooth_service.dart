@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:teragate_ble_repo/utils/log_util.dart';
 
 class BluetoothService {
   static FlutterBluePlus flutterBluePlus = FlutterBluePlus.instance;

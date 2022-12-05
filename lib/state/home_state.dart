@@ -252,7 +252,7 @@ class _HomeState extends State<Home> {
           ),
           // Bottom Navigation Bar
           bottomNavigationBar: BottomNavBar(
-            currentLocation: Env.CURRENT_PLACE,
+            currentLocation: Env.OLD_PLACE,
             currentTime: getPickerTime(getNow()),
             function: _syncghoniztionHomeUI,
           ),
@@ -448,7 +448,7 @@ class _HomeState extends State<Home> {
         dialog.hide();
         showSyncDialog(context,
             widget: SyncDialog(
-              currentLocation: Env.CURRENT_PLACE,
+              currentLocation: Env.OLD_PLACE,
               warning: true,
             ));
       } else {
