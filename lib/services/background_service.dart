@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
@@ -26,11 +27,16 @@ StreamSubscription startBeaconSubscription(StreamController streamController, Se
 }
 
 StreamSubscription startBLESubscription(StreamController streamController, SecureStorage secureStorage) {
+  String oldScanTime = "";
   Map<String, dynamic> eventMap;
 
   return streamController.stream.listen((event) {
     if (event.isNotEmpty) {
       eventMap = jsonDecode(event);
+      if (oldScanTime == eventMap["timeStamp"]) {
+        return;
+      }
+      oldScanTime = eventMap["timeStamp"];
       _processEvent(secureStorage, eventMap);
     }
   }, onError: (dynamic error) {
@@ -39,7 +45,13 @@ StreamSubscription startBLESubscription(StreamController streamController, Secur
 }
 
 Future<void> _processEvent(SecureStorage secureStorage, dynamic eventMap) async {
-  String uuid = eventMap["serviceUuids"][0].toString().toUpperCase().substring(4, 8);
+  String uuid;
+
+  if (Platform.isAndroid) {
+    uuid = eventMap["serviceUuids"][0].toString().toUpperCase().substring(4, 8);
+  } else {
+    uuid = eventMap["serviceUuids"][0].toString().toUpperCase();
+  }
 
   Log.debug(" *** uuid = $uuid :: UUIDS SIZE = ${Env.UUIDS.length}");
 
