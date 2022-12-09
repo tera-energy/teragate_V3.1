@@ -3,14 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:teragate_ble_repo/config/env.dart';
+import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:teragate_ble_repo/utils/log_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
 
 class BluetoothService {
   static FlutterBluePlus flutterBluePlus = FlutterBluePlus.instance;
   static final List<String> macAddresses = ["B0:10:A0:74:A8:8F", "B0:10:A0:74:F1:A4"];
-  static final List<Guid> withServices = [Guid('00001234-0000-1000-8000-00805F9B34FB')]; ///////// Guid('0000FFE0-0000-1000-8000-00805F9B34FB')
-  // static final List<String> iOSIds = ['3E0AC9D7-BF9F-76A3-3104-52FBB26B92D8', 'B10E0507-0753-5F17-0407-0DA58D5D1035'];
+  static final List<Guid> defualtServiceUuid = [Guid("00001235-0000-1000-8000-00805F9B34FB")];
+  static List<Guid> withServices = [];
   static Timer? bleScanTimer;
 
   static Future<void> turnOnBluetooth() async {
@@ -21,13 +23,36 @@ class BluetoothService {
     if (Platform.isAndroid) flutterBluePlus.turnOff();
   }
 
+  static Future<void> setWithServices(List<String>? uuids) async {
+    if (uuids == null) {
+      withServices = defualtServiceUuid;
+    } else {
+      List<Guid> serviceUuids = <Guid>[];
+      for (String el in uuids) {
+        serviceUuids.add(Guid(el));
+      }
+      withServices = serviceUuids;
+    }
+  }
+
   static Future<void> startBLEScan(StreamController streamController) async {
+    if (withServices.isEmpty) {
+      List<String>? uuids = await SharedStorage.readList(Env.KEY_SHARE_UUID);
+      if (uuids == null || uuids.isEmpty) {
+        // 앱 처음 실행
+        setWithServices(null);
+      } else {
+        // 이전 실행에서 uuids 동기화 후 저장된 uuids값
+        setWithServices(uuids);
+      }
+    }
+
     bleScanTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       flutterBluePlus.startScan(
         scanMode: const ScanMode(0),
         timeout: const Duration(seconds: 2),
-        withServices: Platform.isIOS ? withServices : const [],
-        macAddresses: Platform.isAndroid ? macAddresses : const [],
+        withServices: withServices.isEmpty ? const [] : withServices,
+        // macAddresses: Platform.isAndroid ? macAddresses : const [],
         // allowDuplicates: true,
       );
 

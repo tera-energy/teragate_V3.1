@@ -280,10 +280,9 @@ Future<ConfigInfo> _processBeaconInfos(SecureStorage secureStorage, String acces
 // BLE 정보 동기화 처리
 Future<BLEInfo> _processBLEInfos(SecureStorage secureStorage, String accessToken, String refreshToken, String userId, int repeat) async {
   try {
-    // BLEInfo bleInfo = await _getBLEInfos(accessToken, userId);
-    Log.debug(
-        "**********bleinfo ${BLEInfo(success: true, message: "", bleInfoDatas: [BLEInfoData(uuid: "1234", place: "TEST1"), BLEInfoData(uuid: "FFE0", place: "TEST2")]).toJson()['bleInfoDatas']}");
-    BLEInfo bleInfo = BLEInfo.fromJson(BLEInfo(success: true, message: "", bleInfoDatas: [BLEInfoData(uuid: "1234", place: "TEST1"), BLEInfoData(uuid: "FFE0", place: "TEST2")]).toJson());
+    BLEInfo bleInfo = await _getBLEInfos(accessToken, userId);
+    Log.debug("bleInfo : ${bleInfo.toString()}");
+    // BLEInfo bleInfo = BLEInfo.fromJson(BLEInfo(success: true, message: "", bleInfoDatas: [BLEInfoData(uuid: "1234", place: "TEST1"), BLEInfoData(uuid: "FFE0", place: "TEST2")]).toJson());
     TokenInfo tokenInfo;
     if (bleInfo.success!) {
       tokenInfo = TokenInfo(accessToken: accessToken, refreshToken: refreshToken, isUpdated: false);

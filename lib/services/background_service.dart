@@ -48,9 +48,11 @@ Future<void> _processEvent(SecureStorage secureStorage, dynamic eventMap) async 
   String uuid;
 
   if (Platform.isAndroid) {
-    uuid = eventMap["serviceUuids"][0].toString().toUpperCase().substring(4, 8);
-  } else {
+    // uuid = eventMap["serviceUuids"][0].toString().toUpperCase().substring(4, 8);
     uuid = eventMap["serviceUuids"][0].toString().toUpperCase();
+  } else {
+    // uuid = eventMap["serviceUuids"][0].toString().toUpperCase();
+    uuid = "0000${eventMap["serviceUuids"][0].toString().toUpperCase()}-0000-1000-8000-00805F9B34FB";
   }
 
   Log.debug(" *** uuid = $uuid :: UUIDS SIZE = ${Env.UUIDS.length}");
