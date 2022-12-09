@@ -110,7 +110,6 @@ Future<ConfigInfo> _getBeaconInfos(String accessToken, String userId) async {
 // BLE 동기화
 Future<BLEInfo> _getBLEInfos(String accessToken, String userId) async {
   var data = {"userId": userId};
-  // TODO... URI 수정 하기
   var url = Uri.parse(Env.SERVER_GET_CONFIG).replace(queryParameters: data);
   final response = await http.get(url, headers: {"Content-Type": "application/json", "Authorization": accessToken});
 

@@ -56,9 +56,9 @@ class BluetoothService {
         // allowDuplicates: true,
       );
 
-      flutterBluePlus.scanResults.listen((results) {
+      // distinct() 이전 데이터와 같은 데이터는 건너뜀
+      flutterBluePlus.scanResults.distinct().listen((results) {
         dynamic eventMap;
-
         for (ScanResult r in results) {
           if (r.advertisementData.serviceUuids.isNotEmpty) {
             eventMap = BLEScanInfo(

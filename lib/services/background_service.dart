@@ -27,16 +27,11 @@ StreamSubscription startBeaconSubscription(StreamController streamController, Se
 }
 
 StreamSubscription startBLESubscription(StreamController streamController, SecureStorage secureStorage) {
-  String oldScanTime = "";
   Map<String, dynamic> eventMap;
 
   return streamController.stream.listen((event) {
     if (event.isNotEmpty) {
       eventMap = jsonDecode(event);
-      if (oldScanTime == eventMap["timeStamp"]) {
-        return;
-      }
-      oldScanTime = eventMap["timeStamp"];
       _processEvent(secureStorage, eventMap);
     }
   }, onError: (dynamic error) {
