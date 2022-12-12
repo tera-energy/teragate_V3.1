@@ -14,12 +14,11 @@ import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:teragate_ble_repo/services/beacon_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/services/permission_service.dart';
-import 'package:teragate_ble_repo/services/bluetooth_service.dart' as blueService;
+import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
 import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
 import 'package:teragate_ble_repo/state/widgets/coustom_Businesscard.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
 import 'package:teragate_ble_repo/utils/alarm_util.dart';
-import 'package:teragate_ble_repo/utils/log_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
 
 class Place extends StatefulWidget {
@@ -331,11 +330,13 @@ class _PlaceState extends State<Place> {
         }
         SharedStorage.write(Env.KEY_SHARE_UUID, sharedStorageuuid);
 
-        placeList = _deduplication(placeList);
+        setState(() {
+          placeList = _deduplication(placeList);
+        });
 
-        blueService.BluetoothService.setWithServices(sharedStorageuuid).then((value) {
+        bluetooth_service.BluetoothService.setWithServices(sharedStorageuuid).then((value) {
           // 동기화 후 새로운 uuid값들로 스캐너 재실행
-          blueService.BluetoothService.stopBLEScan().then((value) => blueService.BluetoothService.startBLEScan(widget.beaconStreamController));
+          bluetooth_service.BluetoothService.stopBLEScan().then((value) => bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController));
         });
 
         dialog.hide();

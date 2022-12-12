@@ -304,7 +304,7 @@ class _WeekState extends State<Week> {
   }
 
   void _settingUIvalue(WeekInfo? weekInfo) {
-    if (this.mounted) {
+    if (mounted) {
       setState(() {
         workTime.clear();
         weekinTime.clear();

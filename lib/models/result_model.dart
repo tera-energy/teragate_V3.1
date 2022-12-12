@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:teragate_ble_repo/config/env.dart';
-import 'package:teragate_ble_repo/utils/log_util.dart';
 
 LoginInfo resultInfoFromJson(String str) => LoginInfo.fromJson(json.decode(str));
 

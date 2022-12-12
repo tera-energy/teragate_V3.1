@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
-import 'package:teragate_ble_repo/services/beacon_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/utils/log_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';

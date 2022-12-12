@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
-import 'package:teragate_ble_repo/utils/log_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
 
 class BluetoothService {
@@ -72,7 +71,6 @@ class BluetoothService {
               getDateToStringForAll(r.timeStamp),
             ).toString();
             // Log.debug(r.toString());
-            // Log.debug('service UUid : ${r.advertisementData.serviceUuids}');
             streamController.add(eventMap);
           }
         }
