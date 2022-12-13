@@ -7,7 +7,7 @@ class Env {
   static const String TEST_SERVER = "http://teraenergy.iptime.org"; // 개발 테스트 서버
   static const String REAL_SERVER = "http://teragroupware.duckdns.org";
 
-  static const String SERVER_URL = REAL_SERVER;
+  static const String SERVER_URL = TEST_SERVER;
 
   static const String SERVER_LOGIN_URL = '$SERVER_URL:3000/login';
   static const String SERVER_GET_WORK = '$SERVER_URL:3000/teragate/commute/time';
