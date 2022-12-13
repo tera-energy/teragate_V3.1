@@ -24,7 +24,11 @@ class Login extends StatefulWidget {
   final StreamController eventStreamController;
   final StreamController beaconStreamController;
 
-  const Login({required this.eventStreamController, required this.beaconStreamController, Key? key}) : super(key: key);
+  const Login(
+      {required this.eventStreamController,
+      required this.beaconStreamController,
+      Key? key})
+      : super(key: key);
 
   @override
   State<Login> createState() => _LoginState();
@@ -39,9 +43,17 @@ class _LoginState extends State<Login> {
   late TextEditingController _passwordContorller;
   bool checkBoxValue = false;
   Color boxColor = const Color(0xffEBEBF1);
-  TextStyle textStyle = const TextStyle(fontWeight: FontWeight.w500, fontFamily: 'SpoqaHanSansNeo', color: Colors.white, fontSize: 16.0);
+  TextStyle textStyle = const TextStyle(
+      fontWeight: FontWeight.w500,
+      fontFamily: 'SpoqaHanSansNeo',
+      color: Colors.white,
+      fontSize: 16.0);
 
-  TextStyle textFieldStyle = const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'SpoqaHanSansNeo', color: Color(0xffA3A6B9), fontSize: 20);
+  TextStyle textFieldStyle = const TextStyle(
+      fontWeight: FontWeight.bold,
+      fontFamily: 'SpoqaHanSansNeo',
+      color: Color(0xffA3A6B9),
+      fontSize: 20);
   late bool initcheck = true;
 
   late SecureStorage secureStorage;
@@ -65,17 +77,11 @@ class _LoginState extends State<Login> {
     initIp().then((value) => Env.CONNECTIVITY_STREAM_SUBSCRIPTION = value);
     _checkLogin();
 
-    //Location Permission Android
-    checkDeviceLocationIsOn().then((value) {
-      if (value) {
-        showAlertDialog(context, text: "앱에서 위치 켜기를 요청합니다.", action: AppSettings.openLocationSettings);
-      }
-    });
-
-    //Location Permission iOS
-    _checkPermissionLocation().then((value) {
-      if (value) {
-        showAlertDialog(context, text: "앱에서 위치 접근 허용을 요청합니다.", action: AppSettings.openLocationSettings);
+    _checkPermissionLocation().then((isDenied) {
+      if (isDenied) {
+        showAlertDialog(context,
+            text: "앱에서 위치 접근 허용을 요청합니다.",
+            action: AppSettings.openLocationSettings);
       }
     });
 
@@ -85,7 +91,10 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    dialog = SimpleFontelicoProgressDialog(context: context, barrierDimisable: false, duration: const Duration(milliseconds: 3000));
+    dialog = SimpleFontelicoProgressDialog(
+        context: context,
+        barrierDimisable: false,
+        duration: const Duration(milliseconds: 3000));
 
     return _createWillPopScope(
       Container(
@@ -114,7 +123,10 @@ class _LoginState extends State<Login> {
                       child: Text(
                         "Groupware",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff3450FF), fontSize: 20.0),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff3450FF),
+                            fontSize: 20.0),
                       ),
                     ),
                     // Logo
@@ -133,11 +145,13 @@ class _LoginState extends State<Login> {
                     // TextFeild ID, PW
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: _createTextFormField(false, _loginIdContoroller, "아이디를 입력해 주세요", textFieldStyle, "Id"),
+                      child: _createTextFormField(false, _loginIdContoroller,
+                          "아이디를 입력해 주세요", textFieldStyle, "Id"),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: _createTextFormField(true, _passwordContorller, " 패스워드를 입력해 주세요", textFieldStyle, "Password"),
+                      child: _createTextFormField(true, _passwordContorller,
+                          " 패스워드를 입력해 주세요", textFieldStyle, "Password"),
                     ),
                     FutureBuilder(
                         future: _setsaveid(),
@@ -148,13 +162,15 @@ class _LoginState extends State<Login> {
                             return Text('Error: ${snapshot.error}');
                           } else {
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0.0, horizontal: 16.0),
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
                                     checkBoxValue = !checkBoxValue;
                                   });
-                                  secureStorage.write(Env.KEY_ID_CHECK, checkBoxValue.toString());
+                                  secureStorage.write(Env.KEY_ID_CHECK,
+                                      checkBoxValue.toString());
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
@@ -173,13 +189,16 @@ class _LoginState extends State<Login> {
                                           setState(() {
                                             checkBoxValue = !checkBoxValue;
                                           });
-                                          secureStorage.write(Env.KEY_ID_CHECK, checkBoxValue.toString());
+                                          secureStorage.write(Env.KEY_ID_CHECK,
+                                              checkBoxValue.toString());
                                         },
                                       ),
                                     ),
                                     Text(
                                       "ID Check",
-                                      style: textStyle.copyWith(fontSize: 16, color: const Color(0xff141E33)),
+                                      style: textStyle.copyWith(
+                                          fontSize: 16,
+                                          color: const Color(0xff141E33)),
                                     ),
                                     Transform.scale(
                                       scale: 1.5,
@@ -191,7 +210,8 @@ class _LoginState extends State<Login> {
                           }
                         }),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 35.0, horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 35.0, horizontal: 16.0),
                       child: Material(
                         elevation: 5.0,
                         borderRadius: BorderRadius.circular(8.0),
@@ -206,33 +226,50 @@ class _LoginState extends State<Login> {
                               ).then((loginInfo) {
                                 if (loginInfo.success!) {
                                   Env.CURRENT_PAGE_INDEX = 0;
-                                  Env.WORK_PHOTO_PATH = loginInfo.getPhotoPath();
+                                  Env.WORK_PHOTO_PATH =
+                                      loginInfo.getPhotoPath();
                                   Env.WORK_KR_NAME = loginInfo.getKrName();
-                                  Env.WORK_POSITION_NAME = loginInfo.getPositionName();
-                                  Env.WORK_COMPANY_NAME = loginInfo.getCompanyName();
+                                  Env.WORK_POSITION_NAME =
+                                      loginInfo.getPositionName();
+                                  Env.WORK_COMPANY_NAME =
+                                      loginInfo.getCompanyName();
 
-                                  secureStorage.write(Env.KEY_PHOTO_PATH, loginInfo.getPhotoPath());
-                                  secureStorage.write(Env.KEY_KR_NAME, loginInfo.getKrName());
-                                  secureStorage.write(Env.KEY_POSITION_NAME, loginInfo.getPositionName());
-                                  secureStorage.write(Env.KEY_COMPANY_NAME, loginInfo.getCompanyName());
+                                  secureStorage.write(Env.KEY_PHOTO_PATH,
+                                      loginInfo.getPhotoPath());
+                                  secureStorage.write(
+                                      Env.KEY_KR_NAME, loginInfo.getKrName());
+                                  secureStorage.write(Env.KEY_POSITION_NAME,
+                                      loginInfo.getPositionName());
+                                  secureStorage.write(Env.KEY_COMPANY_NAME,
+                                      loginInfo.getCompanyName());
 
-                                  secureStorage.write(Env.LOGIN_ID, _loginIdContoroller.text);
-                                  secureStorage.write(Env.LOGIN_PW, _passwordContorller.text);
+                                  secureStorage.write(
+                                      Env.LOGIN_ID, _loginIdContoroller.text);
+                                  secureStorage.write(
+                                      Env.LOGIN_PW, _passwordContorller.text);
                                   secureStorage.write(Env.LOGIN_STATE, "true");
-                                  secureStorage.write(Env.KEY_ACCESS_TOKEN, loginInfo.tokenInfo!.getAccessToken());
-                                  secureStorage.write(Env.KEY_REFRESH_TOKEN, loginInfo.tokenInfo!.getRefreshToken());
-                                  secureStorage.write(Env.KEY_USER_ID, loginInfo.data!["userId"].toString());
-                                  BluetoothService.startBLEScan(widget.beaconStreamController);
+                                  secureStorage.write(Env.KEY_ACCESS_TOKEN,
+                                      loginInfo.tokenInfo!.getAccessToken());
+                                  secureStorage.write(Env.KEY_REFRESH_TOKEN,
+                                      loginInfo.tokenInfo!.getRefreshToken());
+                                  secureStorage.write(Env.KEY_USER_ID,
+                                      loginInfo.data!["userId"].toString());
+                                  BluetoothService.startBLEScan(
+                                      widget.beaconStreamController);
                                   // _initForBeacon();
                                   _initForBLE();
                                   _setBackgroundPath();
 
-                                  sendMessageByWork(context, secureStorage).then((workInfo) {
+                                  sendMessageByWork(context, secureStorage)
+                                      .then((workInfo) {
                                     Env.INIT_STATE_WORK_INFO = workInfo;
-                                    sendMessageByWeekWork(context, secureStorage).then((weekInfo) {
+                                    sendMessageByWeekWork(
+                                            context, secureStorage)
+                                        .then((weekInfo) {
                                       Env.INIT_STATE_WEEK_INFO = weekInfo;
                                       dialog.hide();
-                                      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                                      Navigator.pushNamedAndRemoveUntil(
+                                          context, '/home', (route) => false);
                                     });
                                   });
                                 } else {
@@ -307,7 +344,12 @@ class _LoginState extends State<Login> {
         false;
   }
 
-  TextFormField _createTextFormField(bool isObscureText, TextEditingController controller, String message, TextStyle style, String decorationType) {
+  TextFormField _createTextFormField(
+      bool isObscureText,
+      TextEditingController controller,
+      String message,
+      TextStyle style,
+      String decorationType) {
     return TextFormField(
       obscureText: isObscureText,
       controller: controller,
@@ -326,7 +368,9 @@ class _LoginState extends State<Login> {
               ),
               hintText: "아이디",
               hintStyle: textFieldStyle,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none),
             )
           : InputDecoration(
               filled: true,
@@ -340,7 +384,9 @@ class _LoginState extends State<Login> {
               ),
               hintText: "비밀번호",
               hintStyle: textFieldStyle,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none),
             ),
     );
   }
@@ -370,7 +416,8 @@ class _LoginState extends State<Login> {
 
   // 비콘 시작
   Future<void> _initForBeacon() async {
-    Env.BEACON_STREAM_SUBSCRIPTION = startBeaconSubscription(widget.beaconStreamController, secureStorage);
+    Env.BEACON_STREAM_SUBSCRIPTION =
+        startBeaconSubscription(widget.beaconStreamController, secureStorage);
     initBeacon(context, widget.beaconStreamController, secureStorage, null);
   }
 
@@ -385,19 +432,26 @@ class _LoginState extends State<Login> {
   }
 
   void _setBackgroundPath() async {
-    Env.BACKGROUND_PATH = await secureStorage.read(Env.KEY_BACKGROUND_PATH) ?? "theme2.png";
+    Env.BACKGROUND_PATH =
+        await secureStorage.read(Env.KEY_BACKGROUND_PATH) ?? "theme2.png";
   }
 
   Future<bool> _checkPermissionLocation() async {
-    Location location = Location();
-    PermissionStatus permissionGranted;
+    bool isDenied = false;
+    if (Platform.isAndroid) {
+      checkDeviceLocationIsOn().then((value) {
+        isDenied = value;
+      });
+    } else if (Platform.isIOS) {
+      Location location = Location();
+      PermissionStatus permissionGranted;
 
-    if (Platform.isIOS) {
       permissionGranted = await location.hasPermission();
+      Log.debug(permissionGranted);
       if (permissionGranted == PermissionStatus.denied) {
-        return true;
+        isDenied = true;
       }
     }
-    return false;
+    return isDenied;
   }
 }
