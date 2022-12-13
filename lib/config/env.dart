@@ -10,10 +10,14 @@ class Env {
   static const String SERVER_URL = TEST_SERVER;
 
   static const String SERVER_LOGIN_URL = '$SERVER_URL:3000/login';
-  static const String SERVER_GET_WORK = '$SERVER_URL:3000/teragate/commute/time';
-  static const String SERVER_POST_TRACKING = '$SERVER_URL:3000/teragate/add/log';
-  static const String SERVER_GET_CONFIG = '$SERVER_URL:3000/teragate/select/config';
-  static const String SERVER_REFRESH_TOKEN_URL = '$SERVER_URL:3000/teragate/refreshToken';
+  static const String SERVER_GET_WORK =
+      '$SERVER_URL:3000/teragate/commute/time';
+  static const String SERVER_POST_TRACKING =
+      '$SERVER_URL:3000/teragate/add/log';
+  static const String SERVER_GET_CONFIG =
+      '$SERVER_URL:3000/teragate/select/config';
+  static const String SERVER_REFRESH_TOKEN_URL =
+      '$SERVER_URL:3000/teragate/refreshToken';
 
   static const String INITIAL_UUID = '74278bdb-b644-4520-8f0c-720eeaffffff';
 
@@ -21,7 +25,8 @@ class Env {
   static const String SERVER_GROUPWARE_REAL = "$SERVER_URL/signIn";
 
   static const String SERVER_GET_IN_URL = '$SERVER_URL:3000/teragate/goToWork';
-  static const String SERVER_GET_OUT_URL = '$SERVER_URL:3000/teragate/leaveWork';
+  static const String SERVER_GET_OUT_URL =
+      '$SERVER_URL:3000/teragate/leaveWork';
 
   static bool isDebug = true; // 배포시 false
 

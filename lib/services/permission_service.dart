@@ -39,6 +39,13 @@ Future<bool> getState() async {
 }
 
 Future<bool> checkDeviceLocationIsOn() async {
-  bool isResult = await Permission.location.isGranted;
-  return isResult;
+  //bool isResult = await Permission.location.isGranted;
+  Permission location = Permission.location;
+  PermissionStatus status = await location.request();
+  bool result=false;
+  if (status == PermissionStatus.granted) {
+    result = true;
+  }
+    
+  return result;
 }
