@@ -77,11 +77,17 @@ class _LoginState extends State<Login> {
     initIp().then((value) => Env.CONNECTIVITY_STREAM_SUBSCRIPTION = value);
     _checkLogin();
 
-    _checkPermissionLocation().then((isGranted) {
-      if (!isGranted) {
-        showAlertDialog(context,
-            text: "앱에서 위치 접근 허용을 요청합니다.",
-            action: AppSettings.openLocationSettings);
+//Location Permission Android
+    checkDeviceLocationIsOn().then((value) {
+      if (value) {
+        showAlertDialog(context, text: "앱에서 위치 켜기를 요청합니다.", action: AppSettings.openLocationSettings);
+      }
+    });
+
+    //Location Permission iOS
+    _checkPermissionLocation().then((value) {
+      if (value) {
+        showAlertDialog(context, text: "앱에서 위치 접근 허용을 요청합니다.", action: AppSettings.openLocationSettings);
       }
     });
 
@@ -437,26 +443,15 @@ class _LoginState extends State<Login> {
   }
 
   Future<bool> _checkPermissionLocation() async {
-    bool isDenied = false;
+    Location location = Location();
+    PermissionStatus permissionGranted;
 
-    // if (Platform.isAndroid) {
-    //   checkDeviceLocationIsOn().then((value) {
-    //     isDenied = value;
-    //   });
-    // } else if (Platform.isIOS) {
-    //   Location location = Location();
-    //   PermissionStatus permissionGranted;
-
-    //   permissionGranted = await location.hasPermission();
-    //   Log.debug(permissionGranted);
-    //   if (permissionGranted == PermissionStatus.denied) {
-    //     isDenied = true;
-    //   }
-    // }
-
-    await checkDeviceLocationIsOn().then((value) {
-      isDenied = value;
-    });
-    return isDenied;
+    if (Platform.isIOS) {
+      permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        return true;
+      }
+    }
+    return false;
   }
 }
