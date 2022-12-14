@@ -229,7 +229,7 @@ class _PlaceState extends State<Place> {
   Future<void> _synchonizationPlaceUI(WorkInfo? workInfo) async {
     if (Platform.isAndroid) {
       checkDeviceLocationIsOn().then((value) {
-        if (value) {
+        if (!value) {
           showAlertDialog(context, text: "앱에서 위치 켜기를 요청합니다.", action: AppSettings.openLocationSettings);
         } else {
           _checkDeviceBluetoothIsOn().then((value) {

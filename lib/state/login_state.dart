@@ -77,19 +77,20 @@ class _LoginState extends State<Login> {
     initIp().then((value) => Env.CONNECTIVITY_STREAM_SUBSCRIPTION = value);
     _checkLogin();
 
-//Location Permission Android
-    checkDeviceLocationIsOn().then((value) {
-      if (value) {
-        showAlertDialog(context, text: "앱에서 위치 켜기를 요청합니다.", action: AppSettings.openLocationSettings);
-      }
-    });
+// //Location Permission Android
+//     checkDeviceLocationIsOn().then((value) {
+//       if (value) {
+//         showAlertDialog(context, text: "앱에서 위치 켜기를 요청합니다.", action: AppSettings.openLocationSettings);
+//       }
+//     });
 
-    //Location Permission iOS
-    _checkPermissionLocation().then((value) {
-      if (value) {
-        showAlertDialog(context, text: "앱에서 위치 접근 허용을 요청합니다.", action: AppSettings.openLocationSettings);
-      }
-    });
+//     //Location Permission iOS
+//     _checkPermissionLocation().then((value) {
+//       if (value) {
+//         showAlertDialog(context, text: "앱에서 위치 접근 허용을 요청합니다.", action: AppSettings.openLocationSettings);
+//       }
+//     });
+    checkDeviceLocationIsOn();
 
     Env.BEACON_FUNCTION = null;
     Env.EVENT_FUNCTION = null;
@@ -440,18 +441,5 @@ class _LoginState extends State<Login> {
   void _setBackgroundPath() async {
     Env.BACKGROUND_PATH =
         await secureStorage.read(Env.KEY_BACKGROUND_PATH) ?? "theme2.png";
-  }
-
-  Future<bool> _checkPermissionLocation() async {
-    Location location = Location();
-    PermissionStatus permissionGranted;
-
-    if (Platform.isIOS) {
-      permissionGranted = await location.hasPermission();
-      if (permissionGranted == PermissionStatus.denied) {
-        return true;
-      }
-    }
-    return false;
   }
 }
