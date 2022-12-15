@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
+import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
 
 class BluetoothService {
@@ -13,6 +14,8 @@ class BluetoothService {
   static final List<Guid> defualtServiceUuid = [Guid("00001235-0000-1000-8000-00805F9B34FB")];
   static List<Guid> withServices = [];
   static Timer? bleScanTimer;
+  static const int timerPeriod = 3;
+  static const int timeLimit = 30;
 
   static Future<void> turnOnBluetooth() async {
     if (Platform.isAndroid) flutterBluePlus.turnOn();
@@ -34,7 +37,10 @@ class BluetoothService {
     }
   }
 
-  static Future<void> startBLEScan(StreamController streamController) async {
+  static Future<void> startBLEScan(StreamController streamController, SecureStorage secureStorage) async {
+    int timeCount = 0;
+    int resultCount = 0;
+
     if (withServices.isEmpty) {
       List<String>? uuids = await SharedStorage.readList(Env.KEY_SHARE_UUID);
       if (uuids == null || uuids.isEmpty) {
@@ -46,7 +52,18 @@ class BluetoothService {
       }
     }
 
-    bleScanTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    if (bleScanTimer != null && bleScanTimer!.isActive) {
+      stopBLEScan();
+    }
+
+    bleScanTimer = Timer.periodic(const Duration(seconds: timerPeriod), (timer) {
+      if (timeCount == timeLimit) {
+        if (resultCount == 0) {
+          getOutUser(secureStorage);
+        }
+        timer.cancel();
+      }
+
       flutterBluePlus.startScan(
         scanMode: const ScanMode(0),
         timeout: const Duration(seconds: 2),
@@ -72,11 +89,14 @@ class BluetoothService {
             ).toString();
             // Log.debug(r.toString());
             streamController.add(eventMap);
+            resultCount++;
           }
         }
       });
 
       flutterBluePlus.stopScan();
+
+      timeCount += timerPeriod;
     });
   }
 

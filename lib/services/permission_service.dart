@@ -1,6 +1,4 @@
 import 'dart:io';
-
-import 'package:app_settings/app_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<bool> callPermissions() async {
@@ -9,7 +7,11 @@ Future<bool> callPermissions() async {
   }
 
   if (Platform.isAndroid) {
-    AppSettings.openAppSettings();
+    bool nearDeviceIsDenied = await Permission.nearbyWifiDevices.isDenied;
+
+    if (nearDeviceIsDenied) {
+      Permission.nearbyWifiDevices.request();
+    }
   }
   return false;
 }
@@ -20,7 +22,7 @@ List<Permission> _getPermissions() {
   if (Platform.isAndroid) {
     permissions.add(Permission.bluetoothScan);
     permissions.add(Permission.bluetoothConnect);
-    permissions.add(Permission.bluetooth);
+    // permissions.add(Permission.bluetooth);
     permissions.add(Permission.locationAlways);
     permissions.add(Permission.locationWhenInUse);
   }

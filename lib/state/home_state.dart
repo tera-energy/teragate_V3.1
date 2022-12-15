@@ -6,6 +6,7 @@ import 'package:teragate_ble_repo/config/env.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:flutter/material.dart';
+import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
 import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
@@ -14,6 +15,7 @@ import 'package:teragate_ble_repo/utils/alarm_util.dart';
 import 'package:teragate_ble_repo/utils/log_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
+import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
 
 class Home extends StatefulWidget {
   final StreamController eventStreamController;
@@ -25,13 +27,9 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
-  // late StreamSubscription beaconStreamSubscription;
-  // late StreamSubscription eventStreamSubscription;
+class _HomeState extends State<Home> with WidgetsBindingObserver {
   late SimpleFontelicoProgressDialog dialog;
-
   late BeaconInfoData beaconInfoData;
-
   late SecureStorage secureStorage;
 
   String backgroundPath = "";
@@ -61,11 +59,34 @@ class _HomeState extends State<Home> {
     Env.EVENT_FUNCTION = _setUI;
     Env.BEACON_FUNCTION = setBeaconUI;
     _initUI();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    Timer? bleScanTimer = bluetooth_service.BluetoothService.bleScanTimer;
+    Timer? startTimer = Env.START_TIMER;
+
+    if (state == AppLifecycleState.inactive) {
+      if (bleScanTimer != null && bleScanTimer.isActive) {
+        bluetooth_service.BluetoothService.stopBLEScan();
+      }
+
+      if (startTimer != null && startTimer.isActive) {
+        startTimer.cancel();
+      }
+    }
+    if (state == AppLifecycleState.resumed) {
+      startBeaconTimer(null, secureStorage).then((timer) => Env.START_TIMER = timer);
+      _requestWorkInfoWhenAppResume();
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override
@@ -252,6 +273,7 @@ class _HomeState extends State<Home> {
           ),
           // Bottom Navigation Bar
           bottomNavigationBar: BottomNavBar(
+            streamController: widget.beaconStreamController,
             currentLocation: Env.OLD_PLACE,
             currentTime: getPickerTime(getNow()),
             function: _syncghoniztionHomeUI,
@@ -442,23 +464,24 @@ class _HomeState extends State<Home> {
 
   Future<void> _syncghoniztionHomeUI(WorkInfo? workInfo) async {
     dialog.show(message: "로딩중...");
-    sendMessageByWork(context, secureStorage).then((workInfo) {
+    sendMessageByWork(secureStorage).then((workInfo) {
       if (workInfo!.success) {
         _resetState(workInfo);
         dialog.hide();
-        showSyncDialog(context,
-            widget: SyncDialog(
-              currentLocation: Env.OLD_PLACE,
-              warning: true,
-            ));
+        showSyncDialog(context, widget: SyncDialog(currentLocation: Env.OLD_PLACE, warning: true));
       } else {
         dialog.hide();
-        showSyncDialog(context,
-            widget: SyncDialog(
-              currentLocation: null,
-              warning: false,
-            ));
+        showSyncDialog(context, widget: SyncDialog(currentLocation: null, warning: false));
       }
+    });
+  }
+
+  Future<void> _requestWorkInfoWhenAppResume() async {
+    sendMessageByWork(secureStorage).then((workInfo) {
+      if (workInfo!.success) {
+        _resetState(workInfo);
+      }
+      bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
     });
   }
 
@@ -484,7 +507,7 @@ class _HomeState extends State<Home> {
         );
       }
 
-      sendMessageByWork(context, secureStorage).then((workInfo) {
+      sendMessageByWork(secureStorage).then((workInfo) {
         if (workInfo!.success) {
           _resetState(workInfo);
         }
@@ -505,7 +528,7 @@ class _HomeState extends State<Home> {
         );
       }
 
-      sendMessageByWork(context, secureStorage).then((workInfo) {
+      sendMessageByWork(secureStorage).then((workInfo) {
         if (workInfo!.success) {
           _resetState(workInfo);
         }

@@ -107,5 +107,7 @@ class Env {
   static Function? BEACON_FUNCTION;
   static String? BACKGROUND_PATH;
 
+  static Timer? START_TIMER;
+
   static const String KEY_SAVED_ARRAY = 'savedArray';
 }

@@ -9,6 +9,7 @@ import 'package:simple_fontellico_progress_dialog/simple_fontico_loading.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
+import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
 import 'package:teragate_ble_repo/state/widgets/coustom_businesscard.dart';
@@ -16,6 +17,7 @@ import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
 import 'package:teragate_ble_repo/utils/alarm_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
+import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
 
 import 'package:image_picker/image_picker.dart';
 
@@ -29,7 +31,7 @@ class ThemeMain extends StatefulWidget {
   State<ThemeMain> createState() => _ThemeState();
 }
 
-class _ThemeState extends State<ThemeMain> {
+class _ThemeState extends State<ThemeMain> with WidgetsBindingObserver {
   late SimpleFontelicoProgressDialog dialog;
   late bool _isCheckedTheme;
   late bool _isCheckedBackground;
@@ -72,6 +74,29 @@ class _ThemeState extends State<ThemeMain> {
     _isCheckedBackground = Env.CHECKED_BACKGOURND;
     _isCheckedTheme = Env.CHECKED_THEME;
     _checkSelectedBackground();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    Timer? bleScanTimer = bluetooth_service.BluetoothService.bleScanTimer;
+    Timer? startTimer = Env.START_TIMER;
+
+    if (state == AppLifecycleState.inactive) {
+      if (bleScanTimer != null && bleScanTimer.isActive) {
+        bluetooth_service.BluetoothService.stopBLEScan();
+      }
+
+      if (startTimer != null && startTimer.isActive) {
+        startTimer.cancel();
+      }
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      startBeaconTimer(null, secureStorage).then((timer) => Env.START_TIMER = timer);
+      _requestWorkInfoWhenAppResume();
+    }
   }
 
   @override
@@ -87,206 +112,212 @@ class _ThemeState extends State<ThemeMain> {
         padding: EdgeInsets.only(top: statusBarHeight),
         decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
         child: Scaffold(
-            body: Stack(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      height: 40.0,
-                      width: 40.0,
-                      margin: const EdgeInsets.only(top: 20.0, right: 20.0),
-                      // padding: const EdgeInsets.all(1.0),
-                      decoration: const BoxDecoration(),
-                      child: Material(
-                        color: Colors.white,
+          body: Stack(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    height: 40.0,
+                    width: 40.0,
+                    margin: const EdgeInsets.only(top: 20.0, right: 20.0),
+                    // padding: const EdgeInsets.all(1.0),
+                    decoration: const BoxDecoration(),
+                    child: Material(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(6.0),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          showLogoutDialog(context);
+                          // Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        },
                         borderRadius: const BorderRadius.all(
                           Radius.circular(6.0),
                         ),
-                        child: InkWell(
-                          onTap: () {
-                            showLogoutDialog(context);
-                            // Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                          },
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(6.0),
-                          ),
-                          child: const Icon(
-                            Icons.logout,
-                            size: 18.0,
-                            color: Color(0xff3450FF),
-                          ),
+                        child: const Icon(
+                          Icons.logout,
+                          size: 18.0,
+                          color: Color(0xff3450FF),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      // 헤더
-                      Expanded(
-                        flex: 1,
-                        child: Column(
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    // 헤더
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 40),
+                            padding: const EdgeInsets.only(top: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                CustomText(
+                                  text: "메인 테마 설정",
+                                  size: 18,
+                                  weight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 테마 변경
+                    Expanded(
+                      flex: 7,
+                      child: createContainer(
+                        Column(
                           children: [
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 40),
-                              padding: const EdgeInsets.only(top: 15),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  CustomText(
-                                    text: "메인 테마 설정",
-                                    size: 18,
-                                    weight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const CustomText(
+                                  text: "테마 배경 사용",
+                                  size: 16,
+                                  color: Colors.black,
+                                ),
+                                Switch(
+                                    value: true, // 항상 켜짐(기능은 비활성화)
+                                    activeColor: Colors.white,
+                                    activeTrackColor: const Color(0xff26C145),
+                                    inactiveTrackColor: const Color(0xff444653),
+                                    onChanged: (value) {})
+                              ],
+                            ),
+
+                            //스크롤뷰로 감싸야 하는 곳
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Checkbox(
+                                                activeColor: const Color(0xffF5F5F5),
+                                                checkColor: Colors.black,
+                                                value: _isCheckedBackground,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    _isCheckedBackground = value!;
+                                                  });
+                                                  Env.CHECKED_BACKGOURND = value!;
+                                                }),
+                                            const CustomText(
+                                              text: "배경색 사용",
+                                              size: 14,
+                                              weight: FontWeight.w400,
+                                              color: Colors.black,
+                                            ),
+                                          ],
+                                        ),
+                                        AnimatedOpacity(
+                                          opacity: _isCheckedBackground ? 1.0 : 0.0,
+                                          duration: const Duration(milliseconds: 500),
+                                          child: Visibility(
+                                            maintainAnimation: true,
+                                            maintainState: true,
+                                            visible: _isCheckedBackground,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: List.generate(backgrounListItems.length, (index) => initContainerByImageBox(list: backgrounListItems, index: index)),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Checkbox(
+                                                activeColor: const Color(0xffF5F5F5),
+                                                checkColor: Colors.black,
+                                                value: _isCheckedTheme,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    _isCheckedTheme = value!;
+                                                  });
+                                                  Env.CHECKED_THEME = value!;
+                                                }),
+                                            const CustomText(
+                                              text: "테마 사용",
+                                              size: 14,
+                                              weight: FontWeight.w400,
+                                              color: Colors.black,
+                                            ),
+                                            SizedBox(width: 50, child: TextButton(onPressed: _addCustomBackground, child: const Text(" + ", style: TextStyle(fontSize: 20)))),
+                                            SizedBox(width: 40, child: TextButton(onPressed: _deleteCustomBackground, child: const Text(" - ", style: TextStyle(fontSize: 20, color: Colors.red)))),
+
+                                            //이미지버튼 추가(리스트에 삽입해야함. )
+                                          ],
+                                        ),
+                                        AnimatedOpacity(
+                                          opacity: _isCheckedTheme ? 1.0 : 0.0,
+                                          duration: const Duration(milliseconds: 500),
+
+                                          //저장된 테마값이 5개 이상일때는 스크롤뷰로 넣고, 아니면 기존 컬럼으로 넣기.
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Column(
+                                              children: [
+                                                Visibility(
+                                                  maintainAnimation: true,
+                                                  maintainState: true,
+                                                  visible: _isCheckedTheme,
+                                                  child: Row(
+                                                    //스크롤뷰로 감싸기.
+                                                    children: List.generate(themeListItmes.length, (index) => initContainerByImageBox(list: themeListItmes, index: index)),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // 테마 변경
-                      Expanded(
-                        flex: 7,
-                        child: createContainer(
-                          Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const CustomText(
-                                    text: "테마 배경 사용",
-                                    size: 16,
-                                    color: Colors.black,
-                                  ),
-                                  Switch(
-                                      value: true, // 항상 켜짐(기능은 비활성화)
-                                      activeColor: Colors.white,
-                                      activeTrackColor: const Color(0xff26C145),
-                                      inactiveTrackColor: const Color(0xff444653),
-                                      onChanged: (value) {})
-                                ],
-                              ),
-
-                              //스크롤뷰로 감싸야 하는 곳
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Checkbox(
-                                                  activeColor: const Color(0xffF5F5F5),
-                                                  checkColor: Colors.black,
-                                                  value: _isCheckedBackground,
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      _isCheckedBackground = value!;
-                                                    });
-                                                    Env.CHECKED_BACKGOURND = value!;
-                                                  }),
-                                              const CustomText(
-                                                text: "배경색 사용",
-                                                size: 14,
-                                                weight: FontWeight.w400,
-                                                color: Colors.black,
-                                              ),
-                                            ],
-                                          ),
-                                          AnimatedOpacity(
-                                            opacity: _isCheckedBackground ? 1.0 : 0.0,
-                                            duration: const Duration(milliseconds: 500),
-                                            child: Visibility(
-                                              maintainAnimation: true,
-                                              maintainState: true,
-                                              visible: _isCheckedBackground,
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: List.generate(backgrounListItems.length, (index) => initContainerByImageBox(list: backgrounListItems, index: index)),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Checkbox(
-                                                  activeColor: const Color(0xffF5F5F5),
-                                                  checkColor: Colors.black,
-                                                  value: _isCheckedTheme,
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      _isCheckedTheme = value!;
-                                                    });
-                                                    Env.CHECKED_THEME = value!;
-                                                  }),
-                                              const CustomText(
-                                                text: "테마 사용",
-                                                size: 14,
-                                                weight: FontWeight.w400,
-                                                color: Colors.black,
-                                              ),
-                                              SizedBox(width: 50, child: TextButton(onPressed: _addCustomBackground, child: const Text(" + ", style: TextStyle(fontSize: 20)))),
-                                              SizedBox(width: 40, child: TextButton(onPressed: _deleteCustomBackground, child: const Text(" - ", style: TextStyle(fontSize: 20, color: Colors.red)))),
-
-                                              //이미지버튼 추가(리스트에 삽입해야함. )
-                                            ],
-                                          ),
-                                          AnimatedOpacity(
-                                            opacity: _isCheckedTheme ? 1.0 : 0.0,
-                                            duration: const Duration(milliseconds: 500),
-
-                                            //저장된 테마값이 5개 이상일때는 스크롤뷰로 넣고, 아니면 기존 컬럼으로 넣기.
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Column(
-                                                children: [
-                                                  Visibility(
-                                                    maintainAnimation: true,
-                                                    maintainState: true,
-                                                    visible: _isCheckedTheme,
-                                                    child: Row(
-                                                      //스크롤뷰로 감싸기.
-                                                      children: List.generate(themeListItmes.length, (index) => initContainerByImageBox(list: themeListItmes, index: index)),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // 프로필
-                      Expanded(
-                          flex: 2,
-                          child: Container(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
-                    ],
-                  ),
+                    ),
+                    // 프로필
+                    Expanded(
+                        flex: 2,
+                        child: Container(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
+                  ],
                 ),
-              ],
-            ),
-            bottomNavigationBar: BottomNavBar(currentLocation: Env.OLD_PLACE, currentTime: getPickerTime(getNow()), function: _synchonizationThemeUI)),
+              ),
+            ],
+          ),
+          bottomNavigationBar: BottomNavBar(
+            streamController: widget.beaconStreamController,
+            currentLocation: Env.OLD_PLACE,
+            currentTime: getPickerTime(getNow()),
+            function: _synchonizationThemeUI,
+          ),
+        ),
       ),
     );
   }
@@ -294,6 +325,7 @@ class _ThemeState extends State<ThemeMain> {
   @override
   void dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   Container createContainer(Widget widget) {
@@ -365,7 +397,7 @@ class _ThemeState extends State<ThemeMain> {
 
   void _synchonizationThemeUI(WorkInfo? workInfo) {
     dialog.show(message: "로딩중...");
-    sendMessageByWork(context, secureStorage).then((workInfo) {
+    sendMessageByWork(secureStorage).then((workInfo) {
       if (workInfo!.success) {
         setState(() {});
         dialog.hide();
@@ -380,6 +412,15 @@ class _ThemeState extends State<ThemeMain> {
               warning: false,
             ));
       }
+    });
+  }
+
+  Future<void> _requestWorkInfoWhenAppResume() async {
+    sendMessageByWork(secureStorage).then((workInfo) {
+      if (workInfo!.success) {
+        setState(() {});
+      }
+      bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
     });
   }
 
