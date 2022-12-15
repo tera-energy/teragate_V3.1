@@ -31,7 +31,7 @@ class Place extends StatefulWidget {
   State<Place> createState() => _PlaceState();
 }
 
-class _PlaceState extends State<Place> {
+class _PlaceState extends State<Place> with WidgetsBindingObserver {
   List<String> placeList = [""];
   late SimpleFontelicoProgressDialog dialog;
   BeaconInfoData beaconInfoData = BeaconInfoData(uuid: "", place: "");
@@ -41,13 +41,28 @@ class _PlaceState extends State<Place> {
 
   @override
   void initState() {
+    super.initState();
     secureStorage = SecureStorage();
     _initUUIDList();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     workInfo = Env.INIT_STATE_WORK_INFO;
     Env.EVENT_FUNCTION = _setUI;
     Env.BEACON_FUNCTION = _setBeaconUI;
-    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _requestBELInfoWhenAppResume();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override
@@ -158,11 +173,6 @@ class _PlaceState extends State<Place> {
             function: _synchonizationPlaceUI,
           )),
     ));
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   WillPopScope _createWillPopScope(Widget widget) {
@@ -318,7 +328,7 @@ class _PlaceState extends State<Place> {
     List<String> sharedStorageuuid = [];
     dialog.show(message: "로딩중...");
 
-    sendMessageByBLE(context, secureStorage).then((bleInfo) {
+    sendMessageByBLE(secureStorage).then((bleInfo) {
       // Log.debug("request ble info : ${bleInfo!.success}");
       if (bleInfo!.success!) {
         List<BLEInfoData> placeInfo = bleInfo.bleInfoDatas;
@@ -344,6 +354,27 @@ class _PlaceState extends State<Place> {
       } else {
         dialog.hide();
         showSyncDialog(context, widget: SyncDialog(warning: false));
+      }
+    });
+  }
+
+  Future<void> _requestBELInfoWhenAppResume() async {
+    List<String> sharedStorageuuid = [];
+
+    sendMessageByBLE(secureStorage).then((bleInfo) {
+      if (bleInfo!.success!) {
+        List<BLEInfoData> placeInfo = bleInfo.bleInfoDatas;
+
+        for (BLEInfoData bleInfoData in placeInfo) {
+          secureStorage.write(bleInfoData.uuid, bleInfoData.place);
+          sharedStorageuuid.add(bleInfoData.uuid);
+          placeList.add(bleInfoData.place);
+        }
+        SharedStorage.write(Env.KEY_SHARE_UUID, sharedStorageuuid);
+
+        setState(() {
+          placeList = _deduplication(placeList);
+        });
       }
     });
   }

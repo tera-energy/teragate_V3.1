@@ -77,7 +77,7 @@ void stopBeaconSubscription(StreamSubscription? streamSubscription) {
 }
 
 Future<Timer> startBeaconTimer(BuildContext? context, SecureStorage secureStorage) async {
-  int count = 0;
+  String lastTime = "";
 
   Timer? timer = Timer.periodic(const Duration(seconds: 1), (timer) {
     // ignore: unnecessary_null_comparison
@@ -86,79 +86,72 @@ Future<Timer> startBeaconTimer(BuildContext? context, SecureStorage secureStorag
     int diff = getNow().difference(Env.INNER_TIME).inSeconds;
     Log.debug(" *** diff = $diff");
 
-    if (diff == 60) {
-      Env.CURRENT_UUID = "";
-      Env.CURRENT_PLACE = "---";
-      Env.OLD_PLACE = Env.CURRENT_PLACE;
-      Env.CHANGE_COUNT = 1;
-      // 서버에 전송
-      if (Env.LOCATION_STATE == "in_work") {
-        sendMessageTracking(context, secureStorage, "", Env.CURRENT_PLACE).then((workInfo) {
+    if (Env.OLD_PLACE == "" || Env.OLD_PLACE == "---") {
+      if (Env.OLD_PLACE != Env.CURRENT_PLACE) {
+        Env.CHANGE_COUNT = 1;
+        Env.OLD_PLACE = Env.CURRENT_PLACE;
+        // 서버에 전송
+        Log.debug("비콘 범위 내부 -- ${Env.LOCATION_STATE}");
+        sendMessageTracking(secureStorage, Env.CURRENT_UUID, Env.CURRENT_PLACE).then((workInfo) {
           Log.debug(" tracking event = ${workInfo == null ? "" : workInfo.success.toString()}");
-          // 외부(비콘 범위 밖) 상태 변경
-          setLocationState(secureStorage, "out_work");
-          _setWorkInfo(context, secureStorage);
-
-          Log.debug("비콘 외부(비콘 범위 밖에서) LOCATION_STAET : ${Env.LOCATION_STATE}");
+          // 외부에서 내부 또는 처음 설치시 상태 변경
+          setLocationState(secureStorage, "in_work");
+          _setWorkInfo(secureStorage);
         });
       }
-    } else {
-      if (Env.OLD_PLACE == "" || Env.OLD_PLACE == "---") {
-        // 외부에서 내부 ( 사무실 또는 회의실 또는 기타 장소) 에 들어온 경우 와 처음 설치 했을때 경우의 변경 이벤트 체크
-
-        if (Env.OLD_PLACE != Env.CURRENT_PLACE) {
-          Env.CHANGE_COUNT = 1;
-          Env.OLD_PLACE = Env.CURRENT_PLACE;
-          // 서버에 전송
-          Log.debug("비콘 내부에 있을 때 LOCATION_STAET : ${Env.LOCATION_STATE}");
-          sendMessageTracking(context, secureStorage, Env.CURRENT_UUID, Env.CURRENT_PLACE).then((workInfo) {
-            Log.debug(" tracking event = ${workInfo == null ? "" : workInfo.success.toString()}");
-            // 외부에서 내부 또는 처음 설치시 상태 변경
-            setLocationState(secureStorage, "in_work");
-            _setWorkInfo(context, secureStorage);
-          });
-        }
+    } else if (Env.OLD_PLACE != Env.CURRENT_PLACE) {
+      if (Env.CHANGE_COUNT > 15) {
+        Log.debug("비콘 범위 내부 지역 이동 -- ${Env.LOCATION_STATE}");
+        Env.CHANGE_COUNT = 1;
+        Env.OLD_PLACE = Env.CURRENT_PLACE;
+        // 서버에 전송
+        sendMessageTracking(secureStorage, Env.CURRENT_UUID, Env.CURRENT_PLACE).then((workInfo) {
+          Log.debug(" tracking event = ${workInfo == null ? "" : workInfo.success.toString()}");
+          _setWorkInfo(secureStorage);
+        });
       } else {
-        // 같은 내부 공간에서 2개의 비콘이 지속적으로 잡히면 최소한 연속으로 60회에서 현재 위치가 아닌 곳에서 다른 곳으로 변경이 이루어 지면 변경 위치를 기준으로 변경 이벤트 체크
-        if (Env.OLD_PLACE != Env.CURRENT_PLACE) {
-          if (Env.CHANGE_COUNT > 60) {
-            Env.CHANGE_COUNT = 1;
-            Env.OLD_PLACE = Env.CURRENT_PLACE;
-            // 서버에 전송
-            sendMessageTracking(context, secureStorage, Env.CURRENT_UUID, Env.CURRENT_PLACE).then((workInfo) {
-              Log.debug(" tracking event = ${workInfo == null ? "" : workInfo.success.toString()}");
-              _setWorkInfo(context, secureStorage);
-            });
-          } else {
-            Env.CHANGE_COUNT++;
-          }
-        } else {
-          Env.CHANGE_COUNT = 1;
-        }
+        Env.CHANGE_COUNT++;
       }
+    } else {
+      Env.CHANGE_COUNT = 1;
     }
 
-    if (count == 60) {
-      _setWorkInfo(context, secureStorage);
-      count = 0;
-    } else {
-      count++;
+    if (lastTime != getDateToStringForHHMMInNow()) {
+      lastTime = getDateToStringForHHMMInNow();
+      _setWorkInfo(secureStorage);
     }
   });
 
   return timer;
 }
 
-void _setWorkInfo(BuildContext? context, SecureStorage secureStorage) {
+void getOutUser(SecureStorage secureStorage) {
+  Env.CURRENT_UUID = "";
+  Env.CURRENT_PLACE = "---";
+  Env.OLD_PLACE = Env.CURRENT_PLACE;
+  Env.CHANGE_COUNT = 1;
+  // 서버에 전송
+  if (Env.LOCATION_STATE == "in_work") {
+    sendMessageTracking(secureStorage, "", Env.CURRENT_PLACE).then((workInfo) {
+      Log.debug(" tracking event = ${workInfo == null ? "" : workInfo.success.toString()}");
+      // 외부(비콘 범위 밖) 상태 변경
+      setLocationState(secureStorage, "out_work");
+      _setWorkInfo(secureStorage);
+      Log.debug("비콘 범위 외부로 이동 -- ${Env.LOCATION_STATE}");
+    });
+  }
+}
+
+void _setWorkInfo(SecureStorage secureStorage) {
   // 금일 출근 퇴근 정보 요청
-  sendMessageByWork(context, secureStorage).then((workInfo) {
+  sendMessageByWork(secureStorage).then((workInfo) {
     Env.INIT_STATE_WORK_INFO = workInfo;
     Env.EVENT_FUNCTION == null ? "" : Env.EVENT_FUNCTION!(workInfo);
   });
 
   Future.delayed(const Duration(seconds: 2), () {
     // 일주일간 출근 퇴근 정보 요청
-    sendMessageByWeekWork(context, secureStorage).then((weekInfo) {
+    sendMessageByWeekWork(secureStorage).then((weekInfo) {
       Env.INIT_STATE_WEEK_INFO = weekInfo;
       Env.EVENT_WEEK_FUNCTION == null ? "" : Env.EVENT_WEEK_FUNCTION!(weekInfo);
     });

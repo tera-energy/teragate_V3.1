@@ -202,7 +202,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   void _passNextPage(BuildContext context, String pushName) {
     if (ModalRoute.of(context)!.settings.name != pushName) {
       Navigator.pushNamedAndRemoveUntil(context, pushName, (route) {
-        sendMessageByWork(context, secureStorage).then((workInfo) {
+        sendMessageByWork(secureStorage).then((workInfo) {
           Env.INIT_STATE_WORK_INFO = workInfo;
         });
         return false;

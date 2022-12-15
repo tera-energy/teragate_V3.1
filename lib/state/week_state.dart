@@ -25,7 +25,7 @@ class Week extends StatefulWidget {
   State<Week> createState() => _WeekState();
 }
 
-class _WeekState extends State<Week> {
+class _WeekState extends State<Week> with WidgetsBindingObserver {
   late SimpleFontelicoProgressDialog dialog;
   late SecureStorage secureStorage;
   BeaconInfoData beaconInfoData = BeaconInfoData(uuid: "", place: "");
@@ -53,6 +53,13 @@ class _WeekState extends State<Week> {
     Env.BEACON_FUNCTION = _setBeaconUI;
 
     _initWeekUI();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override
@@ -169,11 +176,6 @@ class _WeekState extends State<Week> {
     ));
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   Container createContainerwhite(Widget widget) {
     return Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)), child: widget);
   }
@@ -263,7 +265,7 @@ class _WeekState extends State<Week> {
   Future<void> _synchonizationWeekUI(WeekInfo? weekInfo) async {
     dialog.show(message: "로딩중...");
 
-    sendMessageByWeekWork(context, secureStorage).then((weekInfo) {
+    sendMessageByWeekWork(secureStorage).then((weekInfo) {
       _settingUIvalue(weekInfo);
 
       if (weekInfo!.success) {
@@ -279,6 +281,15 @@ class _WeekState extends State<Week> {
             widget: SyncDialog(
               warning: false,
             ));
+      }
+    });
+  }
+
+  Future<void> _requestWeekInfoWhenAppResume() async {
+    sendMessageByWeekWork(secureStorage).then((weekInfo) {
+      _settingUIvalue(weekInfo);
+      if (weekInfo!.success) {
+        Env.INIT_STATE_WEEK_INFO = weekInfo;
       }
     });
   }

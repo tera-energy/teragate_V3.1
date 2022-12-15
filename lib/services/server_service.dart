@@ -415,7 +415,7 @@ Future<WorkInfo> _processGetOut(String accessToken, String refreshToken, String 
 }
 
 // 업무 정보 동기화 메시지 전송 (type : Env.WORK_TYPE_TODAY or Env.WORK_TYPE_WEEK )
-Future<WorkInfo?> sendMessageByWork(BuildContext? context, SecureStorage secureStorage) async {
+Future<WorkInfo?> sendMessageByWork(SecureStorage secureStorage) async {
   String? acccessToken = await secureStorage.read(Env.KEY_ACCESS_TOKEN);
   String? refreshToken = await secureStorage.read(Env.KEY_REFRESH_TOKEN);
 
@@ -432,7 +432,7 @@ Future<WorkInfo?> sendMessageByWork(BuildContext? context, SecureStorage secureS
 }
 
 // 업무 정보 동기화 메시지 전송 (type : Env.WORK_TYPE_TODAY or Env.WORK_TYPE_WEEK )
-Future<WeekInfo?> sendMessageByWeekWork(BuildContext? context, SecureStorage secureStorage) async {
+Future<WeekInfo?> sendMessageByWeekWork(SecureStorage secureStorage) async {
   String? acccessToken = await secureStorage.read(Env.KEY_ACCESS_TOKEN);
   String? refreshToken = await secureStorage.read(Env.KEY_REFRESH_TOKEN);
 
@@ -467,7 +467,7 @@ Future<ConfigInfo?> sendMessageByBeacon(BuildContext? context, SecureStorage sec
 }
 
 // BLE 정보 동기화 메시지 전송
-Future<BLEInfo?> sendMessageByBLE(BuildContext? context, SecureStorage secureStorage) async {
+Future<BLEInfo?> sendMessageByBLE(SecureStorage secureStorage) async {
   String? acccessToken = await secureStorage.read(Env.KEY_ACCESS_TOKEN);
   String? refreshToken = await secureStorage.read(Env.KEY_REFRESH_TOKEN);
   String? userId = await secureStorage.read(Env.KEY_USER_ID);
@@ -485,7 +485,7 @@ Future<BLEInfo?> sendMessageByBLE(BuildContext? context, SecureStorage secureSto
 }
 
 // 추적 정보 등록 메시지 전송
-Future<WorkInfo?> sendMessageTracking(BuildContext? context, SecureStorage secureStorage, String uuid, String place) async {
+Future<WorkInfo?> sendMessageTracking(SecureStorage secureStorage, String uuid, String place) async {
   String? acccessToken = await secureStorage.read(Env.KEY_ACCESS_TOKEN);
   String? refreshToken = await secureStorage.read(Env.KEY_REFRESH_TOKEN);
   String? userId = await secureStorage.read(Env.KEY_USER_ID);

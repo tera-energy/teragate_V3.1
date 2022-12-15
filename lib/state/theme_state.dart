@@ -29,7 +29,7 @@ class ThemeMain extends StatefulWidget {
   State<ThemeMain> createState() => _ThemeState();
 }
 
-class _ThemeState extends State<ThemeMain> {
+class _ThemeState extends State<ThemeMain> with WidgetsBindingObserver {
   late SimpleFontelicoProgressDialog dialog;
   late bool _isCheckedTheme;
   late bool _isCheckedBackground;
@@ -72,6 +72,22 @@ class _ThemeState extends State<ThemeMain> {
     _isCheckedBackground = Env.CHECKED_BACKGOURND;
     _isCheckedTheme = Env.CHECKED_THEME;
     _checkSelectedBackground();
+
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _requestWorkInfoWhenAppResume();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override
@@ -291,11 +307,6 @@ class _ThemeState extends State<ThemeMain> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   Container createContainer(Widget widget) {
     return Container(margin: const EdgeInsets.only(top: 10), padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)), child: widget);
   }
@@ -365,7 +376,7 @@ class _ThemeState extends State<ThemeMain> {
 
   void _synchonizationThemeUI(WorkInfo? workInfo) {
     dialog.show(message: "로딩중...");
-    sendMessageByWork(context, secureStorage).then((workInfo) {
+    sendMessageByWork(secureStorage).then((workInfo) {
       if (workInfo!.success) {
         setState(() {});
         dialog.hide();
@@ -379,6 +390,14 @@ class _ThemeState extends State<ThemeMain> {
             widget: SyncDialog(
               warning: false,
             ));
+      }
+    });
+  }
+
+  Future<void> _requestWorkInfoWhenAppResume() async {
+    sendMessageByWork(secureStorage).then((workInfo) {
+      if (workInfo!.success) {
+        setState(() {});
       }
     });
   }

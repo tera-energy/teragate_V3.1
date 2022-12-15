@@ -25,7 +25,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
   // late StreamSubscription beaconStreamSubscription;
   // late StreamSubscription eventStreamSubscription;
   late SimpleFontelicoProgressDialog dialog;
@@ -61,11 +61,21 @@ class _HomeState extends State<Home> {
     Env.EVENT_FUNCTION = _setUI;
     Env.BEACON_FUNCTION = setBeaconUI;
     _initUI();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _requestWorkInfoWhenAppResume();
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   @override
@@ -442,7 +452,7 @@ class _HomeState extends State<Home> {
 
   Future<void> _syncghoniztionHomeUI(WorkInfo? workInfo) async {
     dialog.show(message: "로딩중...");
-    sendMessageByWork(context, secureStorage).then((workInfo) {
+    sendMessageByWork(secureStorage).then((workInfo) {
       if (workInfo!.success) {
         _resetState(workInfo);
         dialog.hide();
@@ -458,6 +468,14 @@ class _HomeState extends State<Home> {
               currentLocation: null,
               warning: false,
             ));
+      }
+    });
+  }
+
+  Future<void> _requestWorkInfoWhenAppResume() async {
+    sendMessageByWork(secureStorage).then((workInfo) {
+      if (workInfo!.success) {
+        _resetState(workInfo);
       }
     });
   }
@@ -484,7 +502,7 @@ class _HomeState extends State<Home> {
         );
       }
 
-      sendMessageByWork(context, secureStorage).then((workInfo) {
+      sendMessageByWork(secureStorage).then((workInfo) {
         if (workInfo!.success) {
           _resetState(workInfo);
         }
@@ -505,7 +523,7 @@ class _HomeState extends State<Home> {
         );
       }
 
-      sendMessageByWork(context, secureStorage).then((workInfo) {
+      sendMessageByWork(secureStorage).then((workInfo) {
         if (workInfo!.success) {
           _resetState(workInfo);
         }
