@@ -59,7 +59,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
       padding: EdgeInsets.only(top: statusBarHeight),
       decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
       child: Scaffold(
-        body: Stack(
+          body: Stack(
             children: [
               const LogoutButton(),
               Container(
@@ -73,31 +73,23 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
                           child: Column(
                             children: [
                               Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 40, vertical: 5),
+                                  margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
                                   padding: const EdgeInsets.only(top: 15),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: const [
-                                        CustomText(
-                                          text: "등록 단말기 정보",
-                                          size: 18,
-                                          weight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ])),
+                                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                                    CustomText(
+                                      text: "등록 단말기 정보",
+                                      size: 18,
+                                      weight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ])),
                             ],
                           )),
                       Expanded(
                           flex: 7,
                           child: createContainer(Column(
                             children: [
-                              Expanded(
-                                  flex: 5,
-                                  child: placeList == null
-                                      ? const SizedBox()
-                                      : initGridView(placeList)),
+                              Expanded(flex: 5, child: placeList == null ? const SizedBox() : initGridView(placeList)),
                               Expanded(
                                   flex: 1,
                                   child: Column(
@@ -126,12 +118,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
                           flex: 2,
                           child: Container(
                               padding: const EdgeInsets.only(top: 8),
-                              child: createContainerwhite(CustomBusinessCard(
-                                  Env.WORK_COMPANY_NAME,
-                                  Env.WORK_KR_NAME,
-                                  Env.WORK_POSITION_NAME,
-                                  Env.WORK_PHOTO_PATH,
-                                  workInfo)))),
+                              child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
                     ],
                   ),
                 ),
@@ -239,7 +226,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
   Future<void> _synchonizationPlaceUI(WorkInfo? workInfo) async {
     if (Platform.isAndroid) {
       checkDeviceLocationIsOn().then((value) {
-        if (value) {
+        if (!value) {
           showAlertDialog(context, text: "앱에서 위치 켜기를 요청합니다.", action: AppSettings.openLocationSettings);
         } else {
           _checkDeviceBluetoothIsOn().then((value) {
