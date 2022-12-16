@@ -19,6 +19,7 @@ import 'package:teragate_ble_repo/utils/log_util.dart';
 
 void main() {
   MyApp myApp = MyApp();
+  WidgetsFlutterBinding.ensureInitialized();
   myApp.init();
   runApp(myApp);
 }
@@ -29,7 +30,6 @@ class MyApp extends StatelessWidget {
   StreamController? weekStreamController;
 
   SecureStorage? secureStorage;
-  Timer? beaconTimer;
 
   MyApp({this.eventStreamController, this.beaconStreamController, this.weekStreamController, Key? key}) : super(key: key);
 
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     weekStreamController = StreamController<String>.broadcast();
     secureStorage = SecureStorage();
 
-    startBeaconTimer(null, secureStorage!).then((timer) => beaconTimer = timer);
+    startBeaconTimer(null, secureStorage!).then((timer) => Env.START_TIMER = timer);
   }
 
   // This widget is the root of your application.
@@ -81,8 +81,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late SecureStorage secureStorage;
 
-  Timer? beaconTimer;
-
   @override
   void initState() {
     super.initState();
@@ -106,10 +104,10 @@ class _MyHomePageState extends State<MyHomePage> {
         // _initForBeacon();
         _initForBLE();
         initIp().then((value) => Env.CONNECTIVITY_STREAM_SUBSCRIPTION = value);
-        sendMessageByWork(context, secureStorage).then((workInfo) {
+        sendMessageByWork(secureStorage).then((workInfo) {
           Env.INIT_STATE_WORK_INFO = workInfo;
 
-          sendMessageByWeekWork(context, secureStorage).then((weekInfo) {
+          sendMessageByWeekWork(secureStorage).then((weekInfo) {
             Env.INIT_STATE_WEEK_INFO = weekInfo;
             Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
           });
@@ -139,14 +137,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> _initForBeacon() async {
-    Env.BEACON_STREAM_SUBSCRIPTION = startBeaconSubscription(widget.beaconStreamController, secureStorage);
-    initBeacon(context, widget.beaconStreamController, secureStorage, null);
-  }
+  // Future<void> _initForBeacon() async {
+  //   Env.BEACON_STREAM_SUBSCRIPTION = startBeaconSubscription(widget.beaconStreamController, secureStorage);
+  //   initBeacon(context, widget.beaconStreamController, secureStorage, null);
+  // }
 
   // BLE 이벤트 스트림
   Future<void> _initForBLE() async {
-    BluetoothService.startBLEScan(widget.beaconStreamController);
+    BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
 
     startBLESubscription(widget.beaconStreamController, secureStorage);
   }

@@ -5,6 +5,7 @@ import 'package:simple_fontellico_progress_dialog/simple_fontico_loading.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:flutter/material.dart';
+import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
 import 'package:teragate_ble_repo/state/widgets/coustom_businesscard.dart';
@@ -13,6 +14,7 @@ import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
 import 'package:teragate_ble_repo/utils/alarm_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
+import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
 
 class Week extends StatefulWidget {
   final StreamController weekStreamController;
@@ -25,7 +27,7 @@ class Week extends StatefulWidget {
   State<Week> createState() => _WeekState();
 }
 
-class _WeekState extends State<Week> {
+class _WeekState extends State<Week> with WidgetsBindingObserver {
   late SimpleFontelicoProgressDialog dialog;
   late SecureStorage secureStorage;
   BeaconInfoData beaconInfoData = BeaconInfoData(uuid: "", place: "");
@@ -53,6 +55,29 @@ class _WeekState extends State<Week> {
     Env.BEACON_FUNCTION = _setBeaconUI;
 
     _initWeekUI();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    Timer? bleScanTimer = bluetooth_service.BluetoothService.bleScanTimer;
+    Timer? startTimer = Env.START_TIMER;
+
+    if (state == AppLifecycleState.inactive) {
+      if (bleScanTimer != null && bleScanTimer.isActive) {
+        bluetooth_service.BluetoothService.stopBLEScan();
+      }
+
+      if (startTimer != null && startTimer.isActive) {
+        startTimer.cancel();
+      }
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      startBeaconTimer(null, secureStorage).then((timer) => Env.START_TIMER = timer);
+      _requestWeekInfoWhenAppResume();
+    }
   }
 
   @override
@@ -64,114 +89,117 @@ class _WeekState extends State<Week> {
       padding: EdgeInsets.only(top: statusBarHeight),
       decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
       child: Scaffold(
-          body: Stack(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    height: 40.0,
-                    width: 40.0,
-                    margin: const EdgeInsets.only(top: 20.0, right: 20.0),
-                    decoration: const BoxDecoration(),
-                    child: Material(
-                      color: Colors.white,
+        body: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  height: 40.0,
+                  width: 40.0,
+                  margin: const EdgeInsets.only(top: 20.0, right: 20.0),
+                  decoration: const BoxDecoration(),
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(6.0),
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        showLogoutDialog(context);
+                      },
                       borderRadius: const BorderRadius.all(
                         Radius.circular(6.0),
                       ),
-                      child: InkWell(
-                        onTap: () {
-                          showLogoutDialog(context);
-                        },
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(6.0),
-                        ),
-                        child: const Icon(
-                          Icons.logout,
-                          size: 18.0,
-                          color: Color(0xff3450FF),
-                        ),
+                      child: const Icon(
+                        Icons.logout,
+                        size: 18.0,
+                        color: Color(0xff3450FF),
                       ),
                     ),
                   ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 40),
+                              padding: const EdgeInsets.only(top: 15),
+                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                                CustomText(
+                                  text: "금주 출퇴근 시간",
+                                  size: 18,
+                                  weight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ])),
+                        ],
+                      )),
+                  Expanded(
+                      flex: 7,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(flex: 10, child: initListView()),
+                          Expanded(
+                            flex: 1,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const CustomText(
+                                  text: "이번 주 설정된총 근무 시간은",
+                                  size: 12,
+                                  weight: FontWeight.normal,
+                                  color: Color(0xff6E6C6C),
+                                ),
+                                CustomText(
+                                  text: "*$workingtime",
+                                  size: 12,
+                                  weight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                                const CustomText(
+                                  text: "시간 입니다",
+                                  size: 12,
+                                  weight: FontWeight.normal,
+                                  color: Color(0xff6E6C6C),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      )),
+                  Expanded(
+                      flex: 2,
+                      child: Container(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    Expanded(
-                        flex: 1,
-                        child: Column(
-                          children: [
-                            Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 40),
-                                padding: const EdgeInsets.only(top: 15),
-                                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                                  CustomText(
-                                    text: "금주 출퇴근 시간",
-                                    size: 18,
-                                    weight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ])),
-                          ],
-                        )),
-                    Expanded(
-                        flex: 7,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(flex: 10, child: initListView()),
-                            Expanded(
-                              flex: 1,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const CustomText(
-                                    text: "이번 주 설정된총 근무 시간은",
-                                    size: 12,
-                                    weight: FontWeight.normal,
-                                    color: Color(0xff6E6C6C),
-                                  ),
-                                  CustomText(
-                                    text: "*$workingtime",
-                                    size: 12,
-                                    weight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                  const CustomText(
-                                    text: "시간 입니다",
-                                    size: 12,
-                                    weight: FontWeight.normal,
-                                    color: Color(0xff6E6C6C),
-                                  )
-                                ],
-                              ),
-                            )
-                          ],
-                        )),
-                    Expanded(
-                        flex: 2,
-                        child: Container(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          bottomNavigationBar: BottomNavBar(
-            currentLocation: Env.OLD_PLACE,
-            currentTime: getPickerTime(getNow()),
-            function: _synchonizationWeekUI,
-          )),
+            ),
+          ],
+        ),
+        bottomNavigationBar: BottomNavBar(
+          streamController: widget.beaconStreamController,
+          currentLocation: Env.OLD_PLACE,
+          currentTime: getPickerTime(getNow()),
+          function: _synchonizationWeekUI,
+        ),
+      ),
     ));
   }
 
   @override
   void dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   Container createContainerwhite(Widget widget) {
@@ -263,7 +291,7 @@ class _WeekState extends State<Week> {
   Future<void> _synchonizationWeekUI(WeekInfo? weekInfo) async {
     dialog.show(message: "로딩중...");
 
-    sendMessageByWeekWork(context, secureStorage).then((weekInfo) {
+    sendMessageByWeekWork(secureStorage).then((weekInfo) {
       _settingUIvalue(weekInfo);
 
       if (weekInfo!.success) {
@@ -280,6 +308,16 @@ class _WeekState extends State<Week> {
               warning: false,
             ));
       }
+    });
+  }
+
+  Future<void> _requestWeekInfoWhenAppResume() async {
+    sendMessageByWeekWork(secureStorage).then((weekInfo) {
+      _settingUIvalue(weekInfo);
+      if (weekInfo!.success) {
+        Env.INIT_STATE_WEEK_INFO = weekInfo;
+      }
+      bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
     });
   }
 

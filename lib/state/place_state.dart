@@ -11,7 +11,7 @@ import 'package:teragate_ble_repo/State/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
-import 'package:teragate_ble_repo/services/beacon_service.dart';
+import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/services/permission_service.dart';
 import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
@@ -31,7 +31,7 @@ class Place extends StatefulWidget {
   State<Place> createState() => _PlaceState();
 }
 
-class _PlaceState extends State<Place> {
+class _PlaceState extends State<Place> with WidgetsBindingObserver {
   List<String> placeList = [""];
   late SimpleFontelicoProgressDialog dialog;
   BeaconInfoData beaconInfoData = BeaconInfoData(uuid: "", place: "");
@@ -47,6 +47,7 @@ class _PlaceState extends State<Place> {
     workInfo = Env.INIT_STATE_WORK_INFO;
     Env.EVENT_FUNCTION = _setUI;
     Env.BEACON_FUNCTION = _setBeaconUI;
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
@@ -58,110 +59,135 @@ class _PlaceState extends State<Place> {
       padding: EdgeInsets.only(top: statusBarHeight),
       decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
       child: Scaffold(
-          body: Stack(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    height: 40.0,
-                    width: 40.0,
-                    margin: const EdgeInsets.only(top: 20.0, right: 20.0),
-                    // padding: const EdgeInsets.all(1.0),
-                    decoration: const BoxDecoration(),
-                    child: Material(
-                      color: Colors.white,
+        body: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  height: 40.0,
+                  width: 40.0,
+                  margin: const EdgeInsets.only(top: 20.0, right: 20.0),
+                  // padding: const EdgeInsets.all(1.0),
+                  decoration: const BoxDecoration(),
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(6.0),
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        showLogoutDialog(context);
+                        // Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                      },
                       borderRadius: const BorderRadius.all(
                         Radius.circular(6.0),
                       ),
-                      child: InkWell(
-                        onTap: () {
-                          showLogoutDialog(context);
-                          // Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                        },
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(6.0),
-                        ),
-                        child: const Icon(
-                          Icons.logout,
-                          size: 18.0,
-                          color: Color(0xff3450FF),
-                        ),
+                      child: const Icon(
+                        Icons.logout,
+                        size: 18.0,
+                        color: Color(0xff3450FF),
                       ),
                     ),
                   ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    Expanded(
-                        flex: 1,
-                        child: Column(
-                          children: [
-                            Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
-                                padding: const EdgeInsets.only(top: 15),
-                                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
+                              padding: const EdgeInsets.only(top: 15),
+                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                                CustomText(
+                                  text: "등록 단말기 정보",
+                                  size: 18,
+                                  weight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ])),
+                        ],
+                      )),
+                  Expanded(
+                      flex: 7,
+                      child: createContainer(Column(
+                        children: [
+                          Expanded(flex: 5, child: placeList == null ? const SizedBox() : initGridView(placeList)),
+                          Expanded(
+                              flex: 1,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
                                   CustomText(
-                                    text: "등록 단말기 정보",
-                                    size: 18,
-                                    weight: FontWeight.bold,
-                                    color: Colors.black,
+                                    text: "신규등록한 단말기가 보이지 않을 경우",
+                                    size: 12,
+                                    weight: FontWeight.w400,
+                                    color: Color(0xff6E6C6C),
                                   ),
-                                ])),
-                          ],
-                        )),
-                    Expanded(
-                        flex: 7,
-                        child: createContainer(Column(
-                          children: [
-                            Expanded(flex: 5, child: placeList == null ? const SizedBox() : initGridView(placeList)),
-                            Expanded(
-                                flex: 1,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    CustomText(
-                                      text: "신규등록한 단말기가 보이지 않을 경우",
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 8.0),
+                                    child: CustomText(
+                                      text: "하단 동기화 버튼을 눌러주세요",
                                       size: 12,
                                       weight: FontWeight.w400,
                                       color: Color(0xff6E6C6C),
                                     ),
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 8.0),
-                                      child: CustomText(
-                                        text: "하단 동기화 버튼을 눌러주세요",
-                                        size: 12,
-                                        weight: FontWeight.w400,
-                                        color: Color(0xff6E6C6C),
-                                      ),
-                                    ),
-                                  ],
-                                )),
-                          ],
-                        ))),
-                    Expanded(
-                        flex: 2,
-                        child: Container(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
-                  ],
-                ),
+                                  ),
+                                ],
+                              )),
+                        ],
+                      ))),
+                  Expanded(
+                      flex: 2,
+                      child: Container(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
+                ],
               ),
-            ],
-          ),
-          bottomNavigationBar: BottomNavBar(
-            currentLocation: Env.OLD_PLACE,
-            currentTime: getPickerTime(getNow()),
-            function: _synchonizationPlaceUI,
-          )),
+            ),
+          ],
+        ),
+        bottomNavigationBar: BottomNavBar(
+          streamController: widget.beaconStreamController,
+          currentLocation: Env.OLD_PLACE,
+          currentTime: getPickerTime(getNow()),
+          function: _synchonizationPlaceUI,
+        ),
+      ),
     ));
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    Timer? bleScanTimer = bluetooth_service.BluetoothService.bleScanTimer;
+    Timer? startTimer = Env.START_TIMER;
+
+    if (state == AppLifecycleState.inactive) {
+      if (bleScanTimer != null && bleScanTimer.isActive) {
+        bluetooth_service.BluetoothService.stopBLEScan();
+      }
+
+      if (startTimer != null && startTimer.isActive) {
+        startTimer.cancel();
+      }
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      startBeaconTimer(null, secureStorage).then((timer) => Env.START_TIMER = timer);
+      _requestBELInfoWhenAppResume();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -278,45 +304,45 @@ class _PlaceState extends State<Place> {
   }
 
   // 비콘 정보 요청
-  Future<void> _requestBeaconIfon() async {
-    //  비콘 정보 요청 ( 동기화 )
-    List<String> sharedStorageuuid = [];
-    dialog.show(message: "로딩중...");
-    if (Platform.isIOS) {
-      stopBeacon();
-    }
+  // Future<void> _requestBeaconIfon() async {
+  //   //  비콘 정보 요청 ( 동기화 )
+  //   List<String> sharedStorageuuid = [];
+  //   dialog.show(message: "로딩중...");
+  //   if (Platform.isIOS) {
+  //     stopBeacon();
+  //   }
 
-    sendMessageByBeacon(context, secureStorage).then((configInfo) async {
-      if (configInfo!.success!) {
-        List<BeaconInfoData> placeInfo = configInfo.beaconInfoDatas;
+  //   sendMessageByBeacon(context, secureStorage).then((configInfo) async {
+  //     if (configInfo!.success!) {
+  //       List<BeaconInfoData> placeInfo = configInfo.beaconInfoDatas;
 
-        for (BeaconInfoData beaconInfoData in placeInfo) {
-          secureStorage.write(beaconInfoData.uuid, beaconInfoData.place);
-          sharedStorageuuid.add(beaconInfoData.uuid);
-          placeList.add(beaconInfoData.place);
-        }
-        SharedStorage.write(Env.KEY_SHARE_UUID, sharedStorageuuid);
+  //       for (BeaconInfoData beaconInfoData in placeInfo) {
+  //         secureStorage.write(beaconInfoData.uuid, beaconInfoData.place);
+  //         sharedStorageuuid.add(beaconInfoData.uuid);
+  //         placeList.add(beaconInfoData.place);
+  //       }
+  //       SharedStorage.write(Env.KEY_SHARE_UUID, sharedStorageuuid);
 
-        placeList = _deduplication(placeList);
+  //       placeList = _deduplication(placeList);
 
-        setState(() {});
-        if (Platform.isIOS) {
-          initBeacon(context, widget.beaconStreamController, secureStorage, sharedStorageuuid);
-        }
+  //       setState(() {});
+  //       if (Platform.isIOS) {
+  //         initBeacon(context, widget.beaconStreamController, secureStorage, sharedStorageuuid);
+  //       }
 
-        dialog.hide();
-        showSyncDialog(context, widget: SyncDialog(warning: true));
-      } else {
-        dialog.hide();
-        showSyncDialog(context, widget: SyncDialog(warning: false));
-      }
-    });
-  }
+  //       dialog.hide();
+  //       showSyncDialog(context, widget: SyncDialog(warning: true));
+  //     } else {
+  //       dialog.hide();
+  //       showSyncDialog(context, widget: SyncDialog(warning: false));
+  //     }
+  //   });
+  // }
 
   // BLE 정보 요청
   Future<void> _requestBELInfo() async {
-    List<String> sharedStorageuuid = [];
     dialog.show(message: "로딩중...");
+    List<String> sharedStorageuuid = [];
 
     sendMessageByBLE(context, secureStorage).then((bleInfo) {
       // Log.debug("request ble info : ${bleInfo!.success}");
@@ -336,7 +362,7 @@ class _PlaceState extends State<Place> {
 
         bluetooth_service.BluetoothService.setWithServices(sharedStorageuuid).then((value) {
           // 동기화 후 새로운 uuid값들로 스캐너 재실행
-          bluetooth_service.BluetoothService.stopBLEScan().then((value) => bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController));
+          bluetooth_service.BluetoothService.stopBLEScan().then((value) => bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage));
         });
 
         dialog.hide();
@@ -344,6 +370,27 @@ class _PlaceState extends State<Place> {
       } else {
         dialog.hide();
         showSyncDialog(context, widget: SyncDialog(warning: false));
+      }
+    });
+  }
+
+  Future<void> _requestBELInfoWhenAppResume() async {
+    List<String> sharedStorageuuid = [];
+
+    sendMessageByBLE(context, secureStorage).then((bleInfo) {
+      if (bleInfo!.success!) {
+        List<BLEInfoData> placeInfo = bleInfo.bleInfoDatas;
+
+        for (BLEInfoData bleInfoData in placeInfo) {
+          secureStorage.write(bleInfoData.uuid, bleInfoData.place);
+          sharedStorageuuid.add(bleInfoData.uuid);
+          placeList.add(bleInfoData.place);
+        }
+        SharedStorage.write(Env.KEY_SHARE_UUID, sharedStorageuuid);
+
+        setState(() {
+          placeList = _deduplication(placeList);
+        });
       }
     });
   }

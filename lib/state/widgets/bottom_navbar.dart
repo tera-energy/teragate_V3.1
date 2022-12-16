@@ -1,16 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
+import 'package:teragate_ble_repo/services/bluetooth_service.dart';
 import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/utils/log_util.dart';
 
 class BottomNavBar extends StatefulWidget {
+  final StreamController streamController;
   final String? currentLocation;
   final String? currentTime;
   final Function? function;
 
-  const BottomNavBar({this.currentLocation, this.currentTime, this.function, Key? key}) : super(key: key);
+  const BottomNavBar({required this.streamController, this.currentLocation, this.currentTime, this.function, Key? key}) : super(key: key);
 
   @override
   State<BottomNavBar> createState() => _BottomNavBarState();
@@ -129,7 +133,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
                   text: navigatorItem[index]["text"],
                   function: () => {
                     if (navigatorItem[index]["path"] == "")
-                      {widget.function == null ? "" : widget.function!(null)}
+                      {
+                        widget.function == null ? "" : widget.function!(null),
+                        BluetoothService.startBLEScan(widget.streamController, secureStorage),
+                      }
                     else
                       {
                         Env.CURRENT_PAGE_INDEX = index,
@@ -164,7 +171,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
       height: 60.0,
       width: 60.0,
       margin: const EdgeInsets.only(left: 5.0, right: 5.0),
-      // padding: const EdgeInsets.all(1.0),
       child: Material(
         color: backgroundColor,
         borderRadius: const BorderRadius.all(
@@ -202,7 +208,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   void _passNextPage(BuildContext context, String pushName) {
     if (ModalRoute.of(context)!.settings.name != pushName) {
       Navigator.pushNamedAndRemoveUntil(context, pushName, (route) {
-        sendMessageByWork(context, secureStorage).then((workInfo) {
+        sendMessageByWork(secureStorage).then((workInfo) {
           Env.INIT_STATE_WORK_INFO = workInfo;
         });
         return false;
@@ -216,10 +222,4 @@ class _BottomNavBarState extends State<BottomNavBar> {
     }
     return text;
   }
-
-  // void selectedPage() {
-  //   if (_currentIndex == index) {
-  //     navigatorItem[_currentIndex]["selected"] = true;
-  //   }
-  // }
 }

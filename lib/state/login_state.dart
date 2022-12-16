@@ -222,14 +222,14 @@ class _LoginState extends State<Login> {
                                   secureStorage.write(Env.KEY_ACCESS_TOKEN, loginInfo.tokenInfo!.getAccessToken());
                                   secureStorage.write(Env.KEY_REFRESH_TOKEN, loginInfo.tokenInfo!.getRefreshToken());
                                   secureStorage.write(Env.KEY_USER_ID, loginInfo.data!["userId"].toString());
-                                  BluetoothService.startBLEScan(widget.beaconStreamController);
+                                  BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
                                   // _initForBeacon();
                                   _initForBLE();
                                   _setBackgroundPath();
 
-                                  sendMessageByWork(context, secureStorage).then((workInfo) {
+                                  sendMessageByWork(secureStorage).then((workInfo) {
                                     Env.INIT_STATE_WORK_INFO = workInfo;
-                                    sendMessageByWeekWork(context, secureStorage).then((weekInfo) {
+                                    sendMessageByWeekWork(secureStorage).then((weekInfo) {
                                       Env.INIT_STATE_WEEK_INFO = weekInfo;
                                       dialog.hide();
                                       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -369,10 +369,10 @@ class _LoginState extends State<Login> {
   }
 
   // 비콘 시작
-  Future<void> _initForBeacon() async {
-    Env.BEACON_STREAM_SUBSCRIPTION = startBeaconSubscription(widget.beaconStreamController, secureStorage);
-    initBeacon(context, widget.beaconStreamController, secureStorage, null);
-  }
+  // Future<void> _initForBeacon() async {
+  //   Env.BEACON_STREAM_SUBSCRIPTION = startBeaconSubscription(widget.beaconStreamController, secureStorage);
+  //   initBeacon(context, widget.beaconStreamController, secureStorage, null);
+  // }
 
   // BLE 이벤트 스트림
   Future<void> _initForBLE() async {
