@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:teragate_ble_repo/config/env.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
@@ -44,8 +45,9 @@ class MyApp extends StatelessWidget {
     eventStreamController = StreamController<String>.broadcast();
     weekStreamController = StreamController<String>.broadcast();
     secureStorage = SecureStorage();
-
-    startBeaconTimer(null, secureStorage!).then((timer) => Env.START_TIMER = timer);
+    PermissionManager();
+    startBeaconTimer(null, secureStorage!)
+        .then((timer) => Env.START_TIMER = timer);
   }
 
   // This widget is the root of your application.
@@ -116,10 +118,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
 
-    callPermissions();
-    checkDeviceLocationIsOn();
-
-
     _checkFirstRun().then((isFirst) {
       if (!isFirst) {
         _checkLogin().then((state) {
@@ -130,12 +128,13 @@ class _MyHomePageState extends State<MyHomePage> {
             _initForBLE();
             initIp()
                 .then((value) => Env.CONNECTIVITY_STREAM_SUBSCRIPTION = value);
-             sendMessageByWork(secureStorage).then((workInfo) {
-          Env.INIT_STATE_WORK_INFO = workInfo;
+            sendMessageByWork(secureStorage).then((workInfo) {
+              Env.INIT_STATE_WORK_INFO = workInfo;
 
-          sendMessageByWeekWork(secureStorage).then((weekInfo) {
-            Env.INIT_STATE_WEEK_INFO = weekInfo;
-            Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+              sendMessageByWeekWork(secureStorage).then((weekInfo) {
+                Env.INIT_STATE_WEEK_INFO = weekInfo;
+                Navigator.pushNamedAndRemoveUntil(
+                    context, '/home', (route) => false);
               });
             });
           } else {

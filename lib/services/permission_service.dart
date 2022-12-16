@@ -1,60 +1,95 @@
+//import 'dart:html';
 import 'dart:io';
 
 //import 'package:app_settings/app_settings.dart';
+//import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:location/location.dart' as location;
+import 'package:permission_handler/permission_handler.dart' as permission;
+//import 'package:teragate_ble_repo/utils/log_util.dart';
 
-Future<bool> callPermissions() async {
-  if (await getState()) {
-    return true;
+class PermissionManager {
+  static final PermissionManager _instance = PermissionManager._internal();
+
+  factory PermissionManager() => _instance;
+
+  PermissionManager._internal() {
+    flutterBluePlus = FlutterBluePlus.instance;
+    loc = location.Location();
+    callPermissions();
+    checkDeviceLocationIsOn();
+    checkDeviceBluetoothIsOn();
   }
 
-  if (Platform.isAndroid) {
-    bool nearDeviceIsDenied = await Permission.nearbyWifiDevices.isDenied;
+  FlutterBluePlus? flutterBluePlus;
+  location.Location? loc;
 
-    if (nearDeviceIsDenied) {
-      Permission.nearbyWifiDevices.request();
+  Future<bool> callPermissions() async {
+    if (await getState()) {
+      return true;
     }
-  }
-  return false;
-}
 
-List<Permission> _getPermissions() {
-  List<Permission> permissions = [Permission.location];
+    if (Platform.isAndroid) {
+      bool nearDeviceIsDenied =
+          await permission.Permission.nearbyWifiDevices.isDenied;
 
-  if (Platform.isAndroid) {
-    permissions.add(Permission.bluetoothScan);
-    permissions.add(Permission.bluetoothConnect);
-    //permissions.add(Permission.bluetooth);
-    //permissions.add(Permission.locationAlways);
-    //permissions.add(Permission.locationWhenInUse);
+      if (nearDeviceIsDenied) {
+        permission.Permission.nearbyWifiDevices.request();
+      }
+    }
+    return false;
   }
 
-  return permissions;
-}
+  List<permission.Permission> _getPermissions() {
+    List<permission.Permission> permissions = [permission.Permission.location];
 
-Future<bool> getState() async {
-  List<Permission> permissions = _getPermissions();
-  Map<Permission, PermissionStatus> statuses = await permissions.request();
-  if (statuses.values.every((element) => element.isGranted)) {
-    return true;
+    if (Platform.isAndroid) {
+      permissions.add(permission.Permission.bluetoothScan);
+      permissions.add(permission.Permission.bluetoothConnect);
+      //permissions.add(Permission.bluetooth);
+      //permissions.add(Permission.locationAlways);
+      //permissions.add(Permission.locationWhenInUse);
+    }
+
+    return permissions;
   }
 
-  return false;
-}
+  Future<bool> getState() async {
+    List<permission.Permission> permissions = _getPermissions();
+    Map<permission.Permission, permission.PermissionStatus> statuses =
+        await permissions.request();
+    if (statuses.values.every((element) => element.isGranted)) {
+      return true;
+    }
 
-Future<bool> checkDeviceLocationIsOn() async {
-  bool isOn = false;
-
-  isOn = await Geolocator.isLocationServiceEnabled();
-  if (!isOn) Future.error('Location Services are disabled');
-
-  LocationPermission permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) return isOn;
+    return false;
   }
-  isOn = true;
-  return isOn;
+
+  Future<bool> checkDeviceLocationIsOn() async {
+    bool isOn = false;
+    if (Platform.isAndroid) {
+      bool isOn = false;
+
+      isOn = await Geolocator.isLocationServiceEnabled();
+      if (!isOn) Future.error('Location Services are disabled');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) return isOn;
+      }
+      isOn = true;
+    } else if (Platform.isIOS) {
+      isOn = await loc!.serviceEnabled();
+    }
+
+    return isOn;
+  }
+
+// 블루투스 on/off 확인
+  Future<bool> checkDeviceBluetoothIsOn() async {
+    return await flutterBluePlus!.isOn;
+  }
 }
