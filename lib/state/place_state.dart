@@ -362,6 +362,8 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
         setState(() {
           placeList = _deduplication(placeList);
         });
+        
+        bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
       }
     });
   }
