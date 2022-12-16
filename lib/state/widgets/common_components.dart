@@ -6,6 +6,7 @@ import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:teragate_ble_repo/services/bluetooth_service.dart';
 import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
+import 'package:teragate_ble_repo/utils/alarm_util.dart';
 import 'package:teragate_ble_repo/utils/log_util.dart';
 
 class BottomNavBar extends StatefulWidget {
@@ -221,5 +222,51 @@ class _BottomNavBarState extends State<BottomNavBar> {
       text = "${text.substring(0, 5)}...";
     }
     return text;
+  }
+}
+
+
+class LogoutButton extends StatefulWidget {
+  const LogoutButton({super.key});
+
+  @override
+  State<LogoutButton> createState() => _LogoutButton();
+}
+
+class _LogoutButton extends State<LogoutButton> {
+  @override
+  Widget build(BuildContext context) {
+    double statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          height: 40.0,
+          width: 40.0,
+          margin: EdgeInsets.only(top: statusBarHeight + 20.0, right: 20.0),
+          decoration: const BoxDecoration(),
+          child: Material(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(6.0),
+            ),
+            child: InkWell(
+              onTap: () {
+                showLogoutDialog(context);
+              },
+              borderRadius: const BorderRadius.all(
+                Radius.circular(6.0),
+              ),
+              child: const Icon(
+                Icons.logout,
+                size: 18.0,
+                color: Color(0xff3450FF),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

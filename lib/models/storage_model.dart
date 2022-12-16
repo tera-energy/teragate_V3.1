@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teragate_ble_repo/utils/log_util.dart';
 
 class SecureStorage {
   static final SecureStorage _secureStorage = SecureStorage._interal();
@@ -32,8 +33,8 @@ class SecureStorage {
     flutterSecureStorage.delete(key: key);
   }
 
-  void deleteAll() {
-    flutterSecureStorage.deleteAll();
+  Future<void> deleteAll() async {
+    await flutterSecureStorage.deleteAll();
   }
 
   FlutterSecureStorage getFlutterSecureStorage() {
@@ -99,12 +100,16 @@ class SharedStorage {
     sharedPreferences.clear();
   }
 
-  static Future<void> deleteAllIOS() async {
+  static Future<bool> deleteAllIOS(SecureStorage secureStorage) async {
+    bool isFirst = false;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.getBool('first_run') ?? true) {
+      isFirst = true;
       FlutterSecureStorage storage = const FlutterSecureStorage();
       await storage.deleteAll();
+      await SecureStorage().deleteAll();
       sharedPreferences.setBool('first_run', false);
     }
+    return isFirst;
   }
 }

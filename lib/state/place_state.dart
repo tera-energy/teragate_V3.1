@@ -15,7 +15,7 @@ import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/services/permission_service.dart';
 import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
-import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
+import 'package:teragate_ble_repo/state/widgets/common_components.dart';
 import 'package:teragate_ble_repo/state/widgets/coustom_Businesscard.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
 import 'package:teragate_ble_repo/utils/alarm_util.dart';
@@ -60,106 +60,90 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
       decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
       child: Scaffold(
         body: Stack(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  height: 40.0,
-                  width: 40.0,
-                  margin: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  // padding: const EdgeInsets.all(1.0),
-                  decoration: const BoxDecoration(),
-                  child: Material(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(6.0),
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        showLogoutDialog(context);
-                        // Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                      },
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6.0),
-                      ),
-                      child: const Icon(
-                        Icons.logout,
-                        size: 18.0,
-                        color: Color(0xff3450FF),
-                      ),
-                    ),
+            children: [
+              const LogoutButton(),
+              Container(
+                margin: EdgeInsets.only(top: statusBarHeight),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 40, vertical: 5),
+                                  padding: const EdgeInsets.only(top: 15),
+                                  child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        CustomText(
+                                          text: "등록 단말기 정보",
+                                          size: 18,
+                                          weight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ])),
+                            ],
+                          )),
+                      Expanded(
+                          flex: 7,
+                          child: createContainer(Column(
+                            children: [
+                              Expanded(
+                                  flex: 5,
+                                  child: placeList == null
+                                      ? const SizedBox()
+                                      : initGridView(placeList)),
+                              Expanded(
+                                  flex: 1,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      CustomText(
+                                        text: "신규등록한 단말기가 보이지 않을 경우",
+                                        size: 12,
+                                        weight: FontWeight.w400,
+                                        color: Color(0xff6E6C6C),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 8.0),
+                                        child: CustomText(
+                                          text: "하단 동기화 버튼을 눌러주세요",
+                                          size: 12,
+                                          weight: FontWeight.w400,
+                                          color: Color(0xff6E6C6C),
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                            ],
+                          ))),
+                      Expanded(
+                          flex: 2,
+                          child: Container(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: createContainerwhite(CustomBusinessCard(
+                                  Env.WORK_COMPANY_NAME,
+                                  Env.WORK_KR_NAME,
+                                  Env.WORK_POSITION_NAME,
+                                  Env.WORK_PHOTO_PATH,
+                                  workInfo)))),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                children: [
-                  Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
-                              padding: const EdgeInsets.only(top: 15),
-                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                                CustomText(
-                                  text: "등록 단말기 정보",
-                                  size: 18,
-                                  weight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ])),
-                        ],
-                      )),
-                  Expanded(
-                      flex: 7,
-                      child: createContainer(Column(
-                        children: [
-                          Expanded(flex: 5, child: placeList == null ? const SizedBox() : initGridView(placeList)),
-                          Expanded(
-                              flex: 1,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  CustomText(
-                                    text: "신규등록한 단말기가 보이지 않을 경우",
-                                    size: 12,
-                                    weight: FontWeight.w400,
-                                    color: Color(0xff6E6C6C),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(top: 8.0),
-                                    child: CustomText(
-                                      text: "하단 동기화 버튼을 눌러주세요",
-                                      size: 12,
-                                      weight: FontWeight.w400,
-                                      color: Color(0xff6E6C6C),
-                                    ),
-                                  ),
-                                ],
-                              )),
-                        ],
-                      ))),
-                  Expanded(
-                      flex: 2,
-                      child: Container(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
-                ],
               ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: BottomNavBar(
-          streamController: widget.beaconStreamController,
-          currentLocation: Env.OLD_PLACE,
-          currentTime: getPickerTime(getNow()),
-          function: _synchonizationPlaceUI,
-        ),
-      ),
+            ],
+          ),
+          bottomNavigationBar: BottomNavBar(
+            streamController: widget.beaconStreamController,
+            currentLocation: Env.OLD_PLACE,
+            currentTime: getPickerTime(getNow()),
+            function: _synchonizationPlaceUI,
+          )),
     ));
   }
 

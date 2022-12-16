@@ -7,7 +7,7 @@ import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:flutter/material.dart';
 import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
-import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
+import 'package:teragate_ble_repo/state/widgets/common_components.dart';
 import 'package:teragate_ble_repo/state/widgets/coustom_businesscard.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
 import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
@@ -21,7 +21,12 @@ class Week extends StatefulWidget {
   final StreamController beaconStreamController;
   final StreamController eventStreamController;
 
-  const Week({required this.weekStreamController, required this.beaconStreamController, required this.eventStreamController, Key? key}) : super(key: key);
+  const Week(
+      {required this.weekStreamController,
+      required this.beaconStreamController,
+      required this.eventStreamController,
+      Key? key})
+      : super(key: key);
 
   @override
   State<Week> createState() => _WeekState();
@@ -37,9 +42,33 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
   List<String> workTime = [];
   List<String> weekinTime = [];
   List<String> weekoutTime = [];
-  List<bool> workinOk = [true, true, true, true, true, true, true]; // 정상 출근 true/ 지각 false
-  List<bool> workoutOk = [true, true, true, true, true, true, true]; // 정상 출근 true/ 조기퇴근 false
-  List<bool> today = [false, false, false, false, false, false, false]; // 출근만 찍힌 요일 true/ 출퇴근 모두 찍힌 요일 false .
+  List<bool> workinOk = [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ]; // 정상 출근 true/ 지각 false
+  List<bool> workoutOk = [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ]; // 정상 출근 true/ 조기퇴근 false
+  List<bool> today = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ]; // 출근만 찍힌 요일 true/ 출퇴근 모두 찍힌 요일 false .
 
   WorkInfo? workInfo;
 
@@ -82,117 +111,101 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    dialog = SimpleFontelicoProgressDialog(context: context, barrierDimisable: false, duration: const Duration(milliseconds: 3000));
+    dialog = SimpleFontelicoProgressDialog(
+        context: context,
+        barrierDimisable: false,
+        duration: const Duration(milliseconds: 3000));
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return _createWillPopScope(Container(
-      padding: EdgeInsets.only(top: statusBarHeight),
       decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
       child: Scaffold(
-        body: Stack(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  height: 40.0,
-                  width: 40.0,
-                  margin: const EdgeInsets.only(top: 20.0, right: 20.0),
-                  decoration: const BoxDecoration(),
-                  child: Material(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(6.0),
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        showLogoutDialog(context);
-                      },
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6.0),
-                      ),
-                      child: const Icon(
-                        Icons.logout,
-                        size: 18.0,
-                        color: Color(0xff3450FF),
-                      ),
-                    ),
+           body: Stack(
+            children: [
+              const LogoutButton(),
+              Container(
+                margin: EdgeInsets.only(top: statusBarHeight),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 40),
+                                  padding: const EdgeInsets.only(top: 15),
+                                  child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        CustomText(
+                                          text: "금주 출퇴근 시간",
+                                          size: 18,
+                                          weight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ])),
+                            ],
+                          )),
+                      Expanded(
+                          flex: 7,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(flex: 10, child: initListView()),
+                              Expanded(
+                                flex: 1,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const CustomText(
+                                      text: "이번 주 설정된총 근무 시간은",
+                                      size: 12,
+                                      weight: FontWeight.normal,
+                                      color: Color(0xff6E6C6C),
+                                    ),
+                                    CustomText(
+                                      text: "*$workingtime",
+                                      size: 12,
+                                      weight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                    const CustomText(
+                                      text: "시간 입니다",
+                                      size: 12,
+                                      weight: FontWeight.normal,
+                                      color: Color(0xff6E6C6C),
+                                    )
+                                  ],
+                                ),
+                              )
+                            ],
+                          )),
+                      Expanded(
+                          flex: 2,
+                          child: Container(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: createContainerwhite(CustomBusinessCard(
+                                  Env.WORK_COMPANY_NAME,
+                                  Env.WORK_KR_NAME,
+                                  Env.WORK_POSITION_NAME,
+                                  Env.WORK_PHOTO_PATH,
+                                  workInfo)))),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                children: [
-                  Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 40),
-                              padding: const EdgeInsets.only(top: 15),
-                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                                CustomText(
-                                  text: "금주 출퇴근 시간",
-                                  size: 18,
-                                  weight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ])),
-                        ],
-                      )),
-                  Expanded(
-                      flex: 7,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(flex: 10, child: initListView()),
-                          Expanded(
-                            flex: 1,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const CustomText(
-                                  text: "이번 주 설정된총 근무 시간은",
-                                  size: 12,
-                                  weight: FontWeight.normal,
-                                  color: Color(0xff6E6C6C),
-                                ),
-                                CustomText(
-                                  text: "*$workingtime",
-                                  size: 12,
-                                  weight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                                const CustomText(
-                                  text: "시간 입니다",
-                                  size: 12,
-                                  weight: FontWeight.normal,
-                                  color: Color(0xff6E6C6C),
-                                )
-                              ],
-                            ),
-                          )
-                        ],
-                      )),
-                  Expanded(
-                      flex: 2,
-                      child: Container(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
-                ],
-              ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: BottomNavBar(
-          streamController: widget.beaconStreamController,
-          currentLocation: Env.OLD_PLACE,
-          currentTime: getPickerTime(getNow()),
-          function: _synchonizationWeekUI,
-        ),
-      ),
+              )
+            ],
+          ),
+          bottomNavigationBar: BottomNavBar(
+            streamController: widget.beaconStreamController,
+            currentLocation: Env.OLD_PLACE,
+            currentTime: getPickerTime(getNow()),
+            function: _synchonizationWeekUI,
+          )),
     ));
   }
 
@@ -203,7 +216,11 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
   }
 
   Container createContainerwhite(Widget widget) {
-    return Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)), child: widget);
+    return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(6)),
+        child: widget);
   }
 
   ListView initListView() {
@@ -216,7 +233,8 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
         });
   }
 
-  Container initContainerByweektext(Color color, String week, String workTime, bool today) {
+  Container initContainerByweektext(
+      Color color, String week, String workTime, bool today) {
     if (today == true) {
       color = const Color(0xff25A45F);
     }
@@ -230,7 +248,8 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
             Container(
                 margin: const EdgeInsets.all(2),
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
+                decoration: BoxDecoration(
+                    color: color, borderRadius: BorderRadius.circular(6)),
                 child: CustomText(text: week, size: 13)),
             const SizedBox(width: 10),
             CustomText(text: workTime, size: 13, color: Colors.black),
@@ -238,7 +257,8 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
         ));
   }
 
-  Container initOpacityByworktime(String workTime, bool workOk, bool workinoutCheck) {
+  Container initOpacityByworktime(
+      String workTime, bool workOk, bool workinoutCheck) {
     Color workColor;
 
     if (workinoutCheck) {
@@ -253,26 +273,47 @@ class _WeekState extends State<Week> with WidgetsBindingObserver {
     return Container(
       margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: workColor, borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(
+          color: workColor, borderRadius: BorderRadius.circular(6)),
       child: Text(workTime),
     );
   }
 
   Container initContainerByWork(int i) {
     return Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(6)),
         margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          initContainerByweektext(weekinTime[i] == "" ? const Color(0xff77787B) : const Color(0xff3C5FEB), week[i], workTime[i], today[i]),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          initContainerByweektext(
+              weekinTime[i] == ""
+                  ? const Color(0xff77787B)
+                  : const Color(0xff3C5FEB),
+              week[i],
+              workTime[i],
+              today[i]),
           SizedBox(
             child: Row(
               children: [
                 weekinTime[i] != ""
                     ? initOpacityByworktime(weekinTime[i], workinOk[i], true)
-                    : Visibility(maintainSize: true, maintainAnimation: true, maintainState: true, visible: false, child: initOpacityByworktime(weekinTime[i], workinOk[i], true)),
+                    : Visibility(
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        visible: false,
+                        child: initOpacityByworktime(
+                            weekinTime[i], workinOk[i], true)),
                 weekoutTime[i] != ""
                     ? initOpacityByworktime(weekoutTime[i], workoutOk[i], false)
-                    : Visibility(maintainSize: true, maintainAnimation: true, maintainState: true, visible: false, child: initOpacityByworktime(weekinTime[i], workinOk[i], true)),
+                    : Visibility(
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        visible: false,
+                        child: initOpacityByworktime(
+                            weekinTime[i], workinOk[i], true)),
               ],
             ),
           ),
