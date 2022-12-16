@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app_settings/app_settings.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Future<bool> callPermissions() async {
@@ -21,8 +22,8 @@ List<Permission> _getPermissions() {
     permissions.add(Permission.bluetoothScan);
     permissions.add(Permission.bluetoothConnect);
     permissions.add(Permission.bluetooth);
-    permissions.add(Permission.locationAlways);
-    permissions.add(Permission.locationWhenInUse);
+    //permissions.add(Permission.locationAlways);
+    //permissions.add(Permission.locationWhenInUse);
   }
 
   return permissions;
@@ -39,8 +40,17 @@ Future<bool> getState() async {
 }
 
 Future<bool> checkDeviceLocationIsOn() async {
-  if (Platform.isAndroid) {
-    return await Permission.location.serviceStatus.isDisabled;
+  bool isOn = false;
+
+  isOn = await Geolocator.isLocationServiceEnabled();
+  if (!isOn) Future.error('Location Services are disabled');
+
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) return isOn;
   }
-  return false;
+  isOn = true;
+  return isOn;
 }

@@ -6,7 +6,7 @@ import 'package:teragate_ble_repo/config/env.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:flutter/material.dart';
-import 'package:teragate_ble_repo/state/widgets/bottom_navbar.dart';
+import 'package:teragate_ble_repo/state/widgets/common_components.dart';
 import 'package:teragate_ble_repo/state/widgets/custom_text.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
 import 'package:teragate_ble_repo/models/result_model.dart';
@@ -19,7 +19,11 @@ class Home extends StatefulWidget {
   final StreamController eventStreamController;
   final StreamController beaconStreamController;
 
-  const Home({required this.eventStreamController, required this.beaconStreamController, Key? key}) : super(key: key);
+  const Home(
+      {required this.eventStreamController,
+      required this.beaconStreamController,
+      Key? key})
+      : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -71,7 +75,10 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    dialog = SimpleFontelicoProgressDialog(context: context, barrierDimisable: false, duration: const Duration(milliseconds: 3000));
+    dialog = SimpleFontelicoProgressDialog(
+        context: context,
+        barrierDimisable: false,
+        duration: const Duration(milliseconds: 3000));
 
     return WillPopScope(
       onWillPop: () {
@@ -80,7 +87,6 @@ class _HomeState extends State<Home> {
       },
       child: Container(
         // 배경화면
-        padding: EdgeInsets.only(top: statusBarHeight),
         decoration: BoxDecoration(
           image: DecorationImage(
             image: backgroundPath.startsWith("/data")
@@ -97,39 +103,10 @@ class _HomeState extends State<Home> {
           body: Stack(
             children: [
               // 로그아웃 버튼
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    height: 40.0,
-                    width: 40.0,
-                    margin: const EdgeInsets.only(top: 20.0, right: 20.0),
-                    // padding: const EdgeInsets.all(1.0),
-                    decoration: const BoxDecoration(),
-                    child: Material(
-                      color: Colors.white,
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6.0),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          showLogoutDialog(context);
-                        },
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(6.0),
-                        ),
-                        child: const Icon(
-                          Icons.logout,
-                          size: 18.0,
-                          color: Color(0xff3450FF),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              const LogoutButton(),
               // 메인화면
               Container(
+                margin: EdgeInsets.only(top: statusBarHeight),
                 padding: const EdgeInsets.all(15.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +159,8 @@ class _HomeState extends State<Home> {
                           ClipOval(
                             child: Image.network(
                               profilePicture,
-                              errorBuilder: ((context, error, stackTrace) => _errorImage()),
+                              errorBuilder: ((context, error, stackTrace) =>
+                                  _errorImage()),
                               fit: BoxFit.cover,
                               width: 48,
                               height: 48,
@@ -192,7 +170,8 @@ class _HomeState extends State<Home> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               CustomText(
-                                padding: const EdgeInsets.only(left: 14.0, right: 4.0),
+                                padding: const EdgeInsets.only(
+                                    left: 14.0, right: 4.0),
                                 text: profileName,
                                 size: 28.0,
                               ),
