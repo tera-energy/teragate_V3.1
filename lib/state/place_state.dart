@@ -14,23 +14,19 @@ import 'package:teragate_ble_repo/models/storage_model.dart';
 import 'package:teragate_ble_repo/services/background_service.dart';
 import 'package:teragate_ble_repo/services/server_service.dart';
 import 'package:teragate_ble_repo/services/permission_service.dart';
-import 'package:teragate_ble_repo/services/bluetooth_service.dart'
-    as bluetooth_service;
+import 'package:teragate_ble_repo/services/bluetooth_service.dart' as bluetooth_service;
 import 'package:teragate_ble_repo/state/widgets/common_components.dart';
 import 'package:teragate_ble_repo/state/widgets/coustom_Businesscard.dart';
 import 'package:teragate_ble_repo/state/widgets/synchonization_dialog.dart';
 import 'package:teragate_ble_repo/utils/alarm_util.dart';
+import 'package:teragate_ble_repo/utils/log_util.dart';
 import 'package:teragate_ble_repo/utils/time_util.dart';
 
 class Place extends StatefulWidget {
   final StreamController eventStreamController;
   final StreamController beaconStreamController;
 
-  const Place(
-      {required this.eventStreamController,
-      required this.beaconStreamController,
-      Key? key})
-      : super(key: key);
+  const Place({required this.eventStreamController, required this.beaconStreamController, Key? key}) : super(key: key);
 
   @override
   State<Place> createState() => _PlaceState();
@@ -59,10 +55,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    dialog = SimpleFontelicoProgressDialog(
-        context: context,
-        barrierDimisable: false,
-        duration: const Duration(milliseconds: 3000));
+    dialog = SimpleFontelicoProgressDialog(context: context, barrierDimisable: false, duration: const Duration(milliseconds: 3000));
     return _createWillPopScope(Container(
       decoration: const BoxDecoration(color: Color(0xffF5F5F5)),
       child: Scaffold(
@@ -80,31 +73,23 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
                           child: Column(
                             children: [
                               Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 40, vertical: 5),
+                                  margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
                                   padding: const EdgeInsets.only(top: 15),
-                                  child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: const [
-                                        CustomText(
-                                          text: "등록 단말기 정보",
-                                          size: 18,
-                                          weight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ])),
+                                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                                    CustomText(
+                                      text: "등록 단말기 정보",
+                                      size: 18,
+                                      weight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ])),
                             ],
                           )),
                       Expanded(
                           flex: 7,
                           child: createContainer(Column(
                             children: [
-                              Expanded(
-                                  flex: 5,
-                                  child: placeList == null
-                                      ? const SizedBox()
-                                      : initGridView(placeList)),
+                              Expanded(flex: 5, child: placeList == null ? const SizedBox() : initGridView(placeList)),
                               Expanded(
                                   flex: 1,
                                   child: Column(
@@ -133,12 +118,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
                           flex: 2,
                           child: Container(
                               padding: const EdgeInsets.only(top: 8),
-                              child: createContainerwhite(CustomBusinessCard(
-                                  Env.WORK_COMPANY_NAME,
-                                  Env.WORK_KR_NAME,
-                                  Env.WORK_POSITION_NAME,
-                                  Env.WORK_PHOTO_PATH,
-                                  workInfo)))),
+                              child: createContainerwhite(CustomBusinessCard(Env.WORK_COMPANY_NAME, Env.WORK_KR_NAME, Env.WORK_POSITION_NAME, Env.WORK_PHOTO_PATH, workInfo)))),
                     ],
                   ),
                 ),
@@ -171,8 +151,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
     }
 
     if (state == AppLifecycleState.resumed) {
-      startBeaconTimer(null, secureStorage)
-          .then((timer) => Env.START_TIMER = timer);
+      startBeaconTimer(null, secureStorage).then((timer) => Env.START_TIMER = timer);
       _requestBELInfoWhenAppResume();
     }
   }
@@ -193,20 +172,11 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
   }
 
   Container createContainer(Widget widget) {
-    return Container(
-        margin: const EdgeInsets.only(top: 10),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(6)),
-        child: widget);
+    return Container(margin: const EdgeInsets.only(top: 10), padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)), child: widget);
   }
 
   Container createContainerwhite(Widget widget) {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(6)),
-        child: widget);
+    return Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)), child: widget);
   }
 
   GridView initGridView(List list) {
@@ -222,9 +192,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
           return Container(
               margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                  color: const Color(0xffF5F5F5),
-                  borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: const Color(0xffF5F5F5), borderRadius: BorderRadius.circular(8)),
               child: Stack(alignment: Alignment.topLeft, children: [
                 Env.OLD_PLACE == ""
                     ? Container()
@@ -258,13 +226,11 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
   Future<void> _synchonizationPlaceUI(WorkInfo? workInfo) async {
     PermissionManager().checkDeviceLocationIsOn().then((value) {
       if (!value) {
-        _setPermissionAlert(context, "앱에서 위치 켜기를 요청합니다.", Platform.isIOS,
-            AppSettings.openLocationSettings);
+        _setPermissionAlert(context, "앱에서 위치 켜기를 요청합니다.", Platform.isIOS, AppSettings.openLocationSettings);
       } else {
         PermissionManager().checkDeviceBluetoothIsOn().then((value) {
           if (!value) {
-            _setPermissionAlert(context, "앱에서 Bluetooth 켜기를 요청합니다.",
-                Platform.isIOS, AppSettings.openBluetoothSettings);
+            _setPermissionAlert(context, "앱에서 Bluetooth 켜기를 요청합니다.", Platform.isIOS, AppSettings.openBluetoothSettings);
           } else {
             _requestBELInfo();
           }
@@ -275,8 +241,7 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
 
   void _initUUIDList() async {
     setState(() {
-      placeList =
-          _deduplication(Env.UUIDS.entries.map((e) => e.value).toList());
+      placeList = _deduplication(Env.UUIDS.entries.map((e) => e.value).toList());
     });
   }
 
@@ -291,49 +256,12 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
     return list;
   }
 
-  // 비콘 정보 요청
-  // Future<void> _requestBeaconIfon() async {
-  //   //  비콘 정보 요청 ( 동기화 )
-  //   List<String> sharedStorageuuid = [];
-  //   dialog.show(message: "로딩중...");
-  //   if (Platform.isIOS) {
-  //     stopBeacon();
-  //   }
-
-  //   sendMessageByBeacon(context, secureStorage).then((configInfo) async {
-  //     if (configInfo!.success!) {
-  //       List<BeaconInfoData> placeInfo = configInfo.beaconInfoDatas;
-
-  //       for (BeaconInfoData beaconInfoData in placeInfo) {
-  //         secureStorage.write(beaconInfoData.uuid, beaconInfoData.place);
-  //         sharedStorageuuid.add(beaconInfoData.uuid);
-  //         placeList.add(beaconInfoData.place);
-  //       }
-  //       SharedStorage.write(Env.KEY_SHARE_UUID, sharedStorageuuid);
-
-  //       placeList = _deduplication(placeList);
-
-  //       setState(() {});
-  //       if (Platform.isIOS) {
-  //         initBeacon(context, widget.beaconStreamController, secureStorage, sharedStorageuuid);
-  //       }
-
-  //       dialog.hide();
-  //       showSyncDialog(context, widget: SyncDialog(warning: true));
-  //     } else {
-  //       dialog.hide();
-  //       showSyncDialog(context, widget: SyncDialog(warning: false));
-  //     }
-  //   });
-  // }
-
   // BLE 정보 요청
   Future<void> _requestBELInfo() async {
     dialog.show(message: "로딩중...");
     List<String> sharedStorageuuid = [];
 
     sendMessageByBLE(context, secureStorage).then((bleInfo) {
-      // Log.debug("request ble info : ${bleInfo!.success}");
       if (bleInfo!.success!) {
         List<BLEInfoData> placeInfo = bleInfo.bleInfoDatas;
 
@@ -348,12 +276,9 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
           placeList = _deduplication(placeList);
         });
 
-        bluetooth_service.BluetoothService.setWithServices(sharedStorageuuid)
-            .then((value) {
+        bluetooth_service.BluetoothService.setWithServices(sharedStorageuuid).then((value) {
           // 동기화 후 새로운 uuid값들로 스캐너 재실행
-          bluetooth_service.BluetoothService.stopBLEScan().then((value) =>
-              bluetooth_service.BluetoothService.startBLEScan(
-                  widget.beaconStreamController, secureStorage));
+          bluetooth_service.BluetoothService.stopBLEScan().then((value) => bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage));
         });
 
         dialog.hide();
@@ -383,18 +308,15 @@ class _PlaceState extends State<Place> with WidgetsBindingObserver {
           placeList = _deduplication(placeList);
         });
 
-        bluetooth_service.BluetoothService.startBLEScan(
-            widget.beaconStreamController, secureStorage);
+        bluetooth_service.BluetoothService.startBLEScan(widget.beaconStreamController, secureStorage);
       }
     });
   }
 }
 
-void _setPermissionAlert(
-    BuildContext context, String content, bool isIOS, Function? fun) {
+void _setPermissionAlert(BuildContext context, String content, bool isIOS, Function? fun) {
   if (isIOS) {
-    showAlertDialog(context,
-        text: content, action: AppSettings.openAppSettings());
+    showAlertDialog(context, text: content, action: AppSettings.openAppSettings());
   } else if (!isIOS) {
     showAlertDialog(context, text: content, action: fun);
   }

@@ -1,13 +1,9 @@
-//import 'dart:html';
 import 'dart:io';
 
-//import 'package:app_settings/app_settings.dart';
-//import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as location;
 import 'package:permission_handler/permission_handler.dart' as permission;
-//import 'package:teragate_ble_repo/utils/log_util.dart';
 
 class PermissionManager {
   static final PermissionManager _instance = PermissionManager._internal();
@@ -31,8 +27,7 @@ class PermissionManager {
     }
 
     if (Platform.isAndroid) {
-      bool nearDeviceIsDenied =
-          await permission.Permission.nearbyWifiDevices.isDenied;
+      bool nearDeviceIsDenied = await permission.Permission.nearbyWifiDevices.isDenied;
 
       if (nearDeviceIsDenied) {
         permission.Permission.nearbyWifiDevices.request();
@@ -47,9 +42,6 @@ class PermissionManager {
     if (Platform.isAndroid) {
       permissions.add(permission.Permission.bluetoothScan);
       permissions.add(permission.Permission.bluetoothConnect);
-      //permissions.add(Permission.bluetooth);
-      //permissions.add(Permission.locationAlways);
-      //permissions.add(Permission.locationWhenInUse);
     }
 
     return permissions;
@@ -57,8 +49,7 @@ class PermissionManager {
 
   Future<bool> getState() async {
     List<permission.Permission> permissions = _getPermissions();
-    Map<permission.Permission, permission.PermissionStatus> statuses =
-        await permissions.request();
+    Map<permission.Permission, permission.PermissionStatus> statuses = await permissions.request();
     if (statuses.values.every((element) => element.isGranted)) {
       return true;
     }
@@ -69,16 +60,13 @@ class PermissionManager {
   Future<bool> checkDeviceLocationIsOn() async {
     bool isOn = false;
     if (Platform.isAndroid) {
-      bool isOn = false;
-
       isOn = await Geolocator.isLocationServiceEnabled();
       if (!isOn) Future.error('Location Services are disabled');
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) return isOn;
+        if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) return isOn;
       }
       isOn = true;
     } else if (Platform.isIOS) {
